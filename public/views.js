@@ -545,6 +545,93 @@
       ${respBody || `<p class="resp-empty">${esc(t("resp.empty"))}</p>`}
       ${hatvpFoot}</div>` : "";
 
+    // ── L'élection municipale 2026 (participation + liste arrivée en tête) ───
+    // Ministère de l'Intérieur per-commune results. Turnout is near-universal;
+    // the political nuance is only attributed to list-scrutin communes (≥ 1 000
+    // hab.) — its absence is declared per fiche with the reason.
+    const pctT = (v) => (v == null ? "—" : v.toLocaleString(STD.loc(), { maximumFractionDigits: 1 }) + " %");
+    let electionHtml = "";
+    {
+      const e = f.election;
+      if (e) {
+        const tiles = `<div class="metric-grid">
+          <div class="metric"><div class="ml">${esc(t("elec.turnout"))}</div><div class="mv">${pctT(e.votantsPct)}</div></div>
+          <div class="metric"><div class="ml">${esc(t("elec.abstention"))}</div><div class="mv">${pctT(e.abstentionPct)}</div></div>
+          <div class="metric"><div class="ml">${esc(t("elec.registered"))}</div><div class="mv">${fmt(e.inscrits)}</div></div>
+        </div>`;
+        let leadHtml = "";
+        if (e.listLabel) {
+          const bits = [];
+          if (e.pctExp != null) bits.push(t("elec.ofExpressed", { pct: pctT(e.pctExp) }));
+          if (e.seats != null && e.totalSeats != null) bits.push(t("elec.seatsWon", { n: e.seats, total: e.totalSeats }));
+          if (e.marginPts != null) bits.push(t("elec.margin", { pts: e.marginPts.toLocaleString(STD.loc(), { maximumFractionDigits: 1 }) }));
+          leadHtml = `<div class="elec-lead">
+            <div class="elec-lead-h">${esc(t("elec.leadTitle"))}</div>
+            <div class="elec-list">${esc(e.listLabel)}${e.nuanceLabel ? ` <span class="chip nuance-chip">${esc(e.nuanceLabel)}</span>` : ""}</div>
+            ${bits.length ? `<div class="elec-meta">${bits.map((b) => `<span>${esc(b)}</span>`).join('<span class="sep">·</span>')}</div>` : ""}
+          </div>`;
+        }
+        let nuanceNote = "";
+        if (!e.nuance) {
+          const small = (f.pop != null && f.pop < 1000);
+          nuanceNote = `<p class="resp-cov"><span class="ni">ⓘ</span> ${esc(small ? t("elec.noNuanceSmall") : t("elec.noNuanceOther"))}</p>`;
+        }
+        const roundStr = e.tour === 2 ? t("elec.round2") : t("elec.round1");
+        electionHtml = `<div class="panel elec-panel">
+          <h2>${esc(t("elec.title"))}</h2>
+          <p class="psub" style="margin-bottom:16px">${esc(t("elec.sub", { round: roundStr }))}</p>
+          ${tiles}
+          ${leadHtml}
+          ${nuanceNote}
+          <div class="resp-src">${esc(t("elec.src"))}</div>
+        </div>`;
+      } else {
+        electionHtml = `<div class="panel elec-panel">
+          <h2>${esc(t("elec.title"))}</h2>
+          <p class="resp-cov"><span class="ni">ⓘ</span> ${esc(t("elec.none"))}</p>
+        </div>`;
+      }
+    }
+
+    // ── Le conseil municipal (composition — RNE conseillers municipaux) ──────
+    // Full-coverage register: council size, women/men balance, age structure and
+    // number of deputy mayors of the team installed after the 2026 election.
+    let councilHtml = "";
+    {
+      const c = f.council;
+      if (c) {
+        const tiles = `<div class="metric-grid">
+          <div class="metric"><div class="ml">${esc(t("council.size"))}</div><div class="mv">${fmt(c.size)}</div></div>
+          <div class="metric"><div class="ml">${esc(t("council.adjoints"))}</div><div class="mv">${fmt(c.adjoints)}</div></div>
+          <div class="metric"><div class="ml">${esc(t("council.ageAvg"))}</div><div class="mv">${c.ageAvg != null ? c.ageAvg.toLocaleString(STD.loc()) : "—"}<small> ${esc(t("cl.ans"))}</small></div></div>
+        </div>`;
+        let parity = "";
+        if (c.womenPct != null) {
+          const wp = c.womenPct;
+          parity = `<div class="council-parity">
+            <div class="cp-h">${esc(t("council.parity"))}</div>
+            <div class="cp-bar"><div class="cp-women" style="width:${wp}%"></div><div class="cp-men" style="width:${(100 - wp)}%"></div></div>
+            <div class="cp-legend"><span><i class="cp-dot cp-dw"></i>${esc(t("council.women"))} · ${fmt(c.women)} (${pctT(wp)})</span><span><i class="cp-dot cp-dm"></i>${esc(t("council.men"))} · ${fmt(c.men)} (${pctT(100 - wp)})</span></div>
+          </div>`;
+        }
+        const ageRange = (c.ageMin != null && c.ageMax != null)
+          ? `<div class="council-agerange">${esc(t("council.ageRange", { min: c.ageMin, max: c.ageMax }))}</div>` : "";
+        councilHtml = `<div class="panel council-panel">
+          <h2>${esc(t("council.title"))}</h2>
+          <p class="psub" style="margin-bottom:16px">${esc(t("council.sub"))}</p>
+          ${tiles}
+          ${parity}
+          ${ageRange}
+          <div class="resp-src">${esc(t("council.src"))}</div>
+        </div>`;
+      } else {
+        councilHtml = `<div class="panel council-panel">
+          <h2>${esc(t("council.title"))}</h2>
+          <p class="resp-cov"><span class="ni">ⓘ</span> ${esc(t("council.none"))}</p>
+        </div>`;
+      }
+    }
+
     // commune context
     const meta = fin ? fin.meta : {};
     const tags = [];
@@ -597,6 +684,8 @@
           ${metricHtml}
           ${chartsHtml}
           ${respHtml}
+          ${electionHtml}
+          ${councilHtml}
           ${decpHtml}
         </div>
         <div>
