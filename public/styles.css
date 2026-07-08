@@ -175,7 +175,9 @@ section.block { padding: 32px 0; }
 .ratio.bad { background: var(--bad-soft); border-color: #f2c9c7; } .ratio.bad .rv { color: var(--bad); } .ratio.bad .rtag { background: #f7d4d2; color: var(--bad); }
 .ratio.neutral .rv { color: var(--ink); }
 
-.fiche-cols { display: grid; grid-template-columns: 1fr 320px; gap: 22px; margin-top: 22px; align-items: start; }
+.fiche-cols { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 22px; margin-top: 22px; align-items: start; }
+.fiche-cols > div { min-width: 0; }
+.chart { overflow-x: hidden; }
 .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow-sm); padding: 22px; }
 .panel + .panel { margin-top: 20px; }
 .panel h2 { font-size: 19px; font-weight: 800; margin-bottom: 4px; letter-spacing: -.3px; }
@@ -291,7 +293,7 @@ footer.foot .fi { display: flex; justify-content: space-between; gap: 16px; flex
   .menu-btn { display: block; }
   .stats { grid-template-columns: 1fr 1fr; }
   .grid-2 { grid-template-columns: minmax(0, 1fr); }
-  .fiche-cols { grid-template-columns: 1fr; }
+  .fiche-cols { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 560px) {
   .fiche-hero { padding: 22px 16px; border-radius: 18px; }
@@ -323,7 +325,10 @@ footer.foot .fi { display: flex; justify-content: space-between; gap: 16px; flex
 /* DECP (v2) — "Où va l'argent ?" money-trail panel */
 .decp-sec { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 22px 0 8px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-2); }
 .decp-sec span { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 12px; color: var(--muted); text-align: right; }
-.decp-suppliers .rank-row .val { color: var(--bleu); }
+.decp-suppliers .rank-row .val { color: var(--bleu); white-space: nowrap; flex: none; }
+.decp-suppliers .rank-row .who { min-width: 0; }
+/* long supplier names are meaningful — wrap them instead of forcing overflow */
+.decp-suppliers .rank-row .who .nm { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
 .decp-marches { display: flex; flex-direction: column; }
 .decp-marche { padding: 11px 2px; }
 .decp-marche + .decp-marche { border-top: 1px solid var(--line); }
