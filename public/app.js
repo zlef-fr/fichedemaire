@@ -106,6 +106,7 @@ STD.lineChart = (points, color = "#000091", opts = {}) => {
   const line = pts.map((p, i) => `${i ? "L" : "M"}${X(p.y).toFixed(1)},${Y(p.h).toFixed(1)}`).join(" ");
   const area = `M${X(pts[0].y).toFixed(1)},${Y(ymin).toFixed(1)} ` + pts.map((p) => `L${X(p.y).toFixed(1)},${Y(p.h).toFixed(1)}`).join(" ") + ` L${X(pts[pts.length - 1].y).toFixed(1)},${Y(ymin).toFixed(1)} Z`;
   const grid = gridSvg(ymin, ymax, Y);
+  const mnd = STD.mandateOverlay(X, xmin, xmax);
   const xlab = pts.map((p) => `<text class="axis-label" x="${X(p.y).toFixed(1)}" y="${CH - 8}" text-anchor="middle">${String(p.y).slice(2)}</text>`).join("");
   const dots = pts.map((p, i) => `<circle class="dot" data-i="${i}" cx="${X(p.y).toFixed(1)}" cy="${Y(p.h).toFixed(1)}" r="3.4" fill="${color}"/>`).join("");
   const band = (CW - CPL - CPR) / pts.length;
@@ -114,7 +115,7 @@ STD.lineChart = (points, color = "#000091", opts = {}) => {
     return `<rect class="tip-hit" data-i="${i}" data-tip="${tip}" x="${(X(p.y) - band / 2).toFixed(1)}" y="${CPT}" width="${band.toFixed(1)}" height="${(CH - CPT - CPB).toFixed(1)}"/>`;
   }).join("");
   const gid = "g" + color.replace("#", "");
-  return `<div class="chart"><svg viewBox="0 0 ${CW} ${CH}" role="img"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>${grid}<path class="area" d="${area}" fill="url(#${gid})"/><path class="linepath" d="${line}" stroke="${color}"/>${dots}${xlab}${hits}</svg></div>`;
+  return `<div class="chart"><svg viewBox="0 0 ${CW} ${CH}" role="img"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>${grid}<path class="area" d="${area}" fill="url(#${gid})"/><path class="linepath" d="${line}" stroke="${color}"/>${mnd}${dots}${xlab}${hits}</svg></div>`;
 };
 
 // Two-series line chart (e.g. recettes vs dépenses). opts: { la, lb }.
@@ -130,6 +131,7 @@ STD.dualLine = (a, b, ca, cb, opts = {}) => {
   const Y = (v) => CPT + (1 - (v - ymin) / (ymax - ymin)) * (CH - CPT - CPB);
   const path = (arr) => arr.map((p, i) => `${i ? "L" : "M"}${X(p.y).toFixed(1)},${Y(p.h).toFixed(1)}`).join(" ");
   const grid = gridSvg(ymin, ymax, Y);
+  const mnd = STD.mandateOverlay(X, xmin, xmax);
   const xlab = A.map((p) => `<text class="axis-label" x="${X(p.y).toFixed(1)}" y="${CH - 8}" text-anchor="middle">${String(p.y).slice(2)}</text>`).join("");
   const dotsB = B.map((p) => `<circle class="dot dot-b" cx="${X(p.y).toFixed(1)}" cy="${Y(p.h).toFixed(1)}" r="3" fill="${cb}"/>`).join("");
   const dotsA = A.map((p, i) => `<circle class="dot" data-i="${i}" cx="${X(p.y).toFixed(1)}" cy="${Y(p.h).toFixed(1)}" r="3.4" fill="${ca}"/>`).join("");
@@ -140,7 +142,7 @@ STD.dualLine = (a, b, ca, cb, opts = {}) => {
     const tip = tipAttr({ y: p.y, rows });
     return `<rect class="tip-hit" data-i="${i}" data-tip="${tip}" x="${(X(p.y) - band / 2).toFixed(1)}" y="${CPT}" width="${band.toFixed(1)}" height="${(CH - CPT - CPB).toFixed(1)}"/>`;
   }).join("");
-  return `<div class="chart"><svg viewBox="0 0 ${CW} ${CH}" role="img">${grid}<path class="linepath" d="${path(A)}" stroke="${ca}"/><path class="linepath" d="${path(B)}" stroke="${cb}" stroke-dasharray="1 5"/>${dotsB}${dotsA}${xlab}${hits}</svg></div>`;
+  return `<div class="chart"><svg viewBox="0 0 ${CW} ${CH}" role="img">${grid}<path class="linepath" d="${path(A)}" stroke="${ca}"/><path class="linepath" d="${path(B)}" stroke="${cb}" stroke-dasharray="1 5"/>${mnd}${dotsB}${dotsA}${xlab}${hits}</svg></div>`;
 };
 
 // Bar chart over {y, h}. opts: { label, fmt }.
@@ -154,6 +156,8 @@ STD.barChart = (points, color = "#18753c", opts = {}) => {
   const X = (i) => CPL + (i + 0.5) / pts.length * (CW - CPL - CPR);
   const Y = (v) => CPT + (1 - (v - ymin) / (ymax - ymin)) * (CH - CPT - CPB);
   const grid = gridSvg(ymin, ymax, Y);
+  const bstep = (CW - CPL - CPR) / pts.length;
+  const mnd = STD.mandateOverlay((yr) => CPL + (yr - pts[0].y + 0.5) * bstep, pts[0].y, pts[pts.length - 1].y);
   const bars = pts.map((p, i) => {
     const y0 = Y(Math.max(0, p.h)), y1 = Y(Math.min(0, p.h));
     return `<rect class="barcol" data-i="${i}" x="${(X(i) - bw / 2).toFixed(1)}" y="${y0.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1, y1 - y0).toFixed(1)}" rx="3" fill="${p.h < 0 ? '#c9302c' : color}"/>`;
@@ -164,7 +168,7 @@ STD.barChart = (points, color = "#18753c", opts = {}) => {
     const tip = tipAttr({ y: p.y, rows: [{ c: p.h < 0 ? "#c9302c" : color, l: opts.label || "", v: fmtV(p.h) }] });
     return `<rect class="tip-hit" data-i="${i}" data-tip="${tip}" x="${(X(i) - band / 2).toFixed(1)}" y="${CPT}" width="${band.toFixed(1)}" height="${(CH - CPT - CPB).toFixed(1)}"/>`;
   }).join("");
-  return `<div class="chart"><svg viewBox="0 0 ${CW} ${CH}" role="img">${grid}${bars}${xlab}${hits}</svg></div>`;
+  return `<div class="chart"><svg viewBox="0 0 ${CW} ${CH}" role="img">${grid}${bars}${mnd}${xlab}${hits}</svg></div>`;
 };
 
 // shared Y grid + labels
@@ -172,6 +176,37 @@ function gridSvg(ymin, ymax, Y) {
   return [ymin, (ymin + ymax) / 2, ymax].map((v) =>
     `<line class="grid-line" x1="${CPL}" y1="${Y(v).toFixed(1)}" x2="${CW - CPR}" y2="${Y(v).toFixed(1)}"/><text class="axis-label" x="${CPL - 6}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end">${Math.round(v).toLocaleString(STD.loc())}</text>`).join("");
 }
+
+// ── municipal-mandate overlay (terms are national: 2014 · 2020 · 2026) ──────
+// French councils all renew on the same 6-yr cycle, so any finance timeline can
+// be sliced into mandate periods — a "bilan par mandat". `xAt` maps a (fractional)
+// calendar year to px in this chart's own coordinate space; the transition line
+// sits at E-0.5, i.e. between the last pre-election year and the election year.
+const ELECTIONS = [2008, 2014, 2020, 2026, 2032];
+const CUR_TERM = 2026;
+STD.mandateOverlay = (xAt, dom0, dom1) => {
+  const clamp = (x) => Math.max(CPL, Math.min(CW - CPR, x));
+  const hBand = CH - CPT - CPB;
+  let bands = "", lines = "", labels = "";
+  for (let k = 0; k < ELECTIONS.length - 1; k++) {
+    const s = ELECTIONS[k], e = ELECTIONS[k + 1];
+    if (e - 1 < dom0 || s > dom1) continue;                 // period out of view
+    const x0 = clamp(xAt(s - 0.5)), x1 = clamp(xAt(e - 0.5));
+    if (x1 - x0 < 3) continue;
+    bands += `<rect class="mnd-band${k % 2 ? " alt" : ""}" x="${x0.toFixed(1)}" y="${CPT}" width="${(x1 - x0).toFixed(1)}" height="${hBand}"/>`;
+    if (x1 - x0 > 48) {
+      const lab = s >= CUR_TERM ? STD.t("mnd.current") : `${s}–${e}`;
+      labels += `<text class="mnd-label" x="${((x0 + x1) / 2).toFixed(1)}" y="${CPT + 11}" text-anchor="middle">${STD.esc(lab)}</text>`;
+    }
+  }
+  ELECTIONS.forEach((E) => {
+    const b = E - 0.5;
+    if (b <= dom0 || b >= dom1) return;                     // interior dividers only
+    const x = xAt(b);
+    lines += `<line class="mnd-div" x1="${x.toFixed(1)}" y1="${CPT}" x2="${x.toFixed(1)}" y2="${(CH - CPB).toFixed(1)}"/>`;
+  });
+  return `<g class="mnd">${bands}${lines}${labels}</g>`;
+};
 
 // ── shared floating chart tooltip (hover on desktop, tap on touch) ──────────
 function ensureTip() {

@@ -65,7 +65,10 @@ window.STD_I18N = {
 
     "fiche.identity": "Le maire",
     "fiche.civ": "Civilité", "fiche.age": "Âge", "fiche.job": "Profession déclarée",
-    "fiche.mandat": "Maire depuis", "fiche.man": "M.", "fiche.mme": "Mme",
+    "fiche.mandat": "Mandat en cours depuis", "fiche.man": "M.", "fiche.mme": "Mme",
+    "mnd.current": "En cours",
+    "mnd.legend": "Zones ombrées = mandats municipaux (élections 2014 · 2020 · 2026)",
+    "mnd.note": "Les élections municipales sont nationales : les mandats changent en 2014, 2020 et 2026. Les comptes ci-dessus relèvent donc de mandats précédents — les données ouvertes ne permettent pas de confirmer si le maire actuel exerçait déjà lors de ces mandats.",
     "fiche.cumul": "Autres mandats",
     "fiche.commune": "La commune",
     "fiche.pop": "Population", "fiche.dep": "Département", "fiche.reg": "Région", "fiche.epci": "Intercommunalité",
@@ -181,7 +184,10 @@ window.STD_I18N = {
 
     "fiche.identity": "The mayor",
     "fiche.civ": "Title", "fiche.age": "Age", "fiche.job": "Declared occupation",
-    "fiche.mandat": "Mayor since", "fiche.man": "Mr", "fiche.mme": "Ms",
+    "fiche.mandat": "Current term since", "fiche.man": "Mr", "fiche.mme": "Ms",
+    "mnd.current": "Current",
+    "mnd.legend": "Shaded zones = municipal terms (elections 2014 · 2020 · 2026)",
+    "mnd.note": "Municipal elections are nationwide: terms change in 2014, 2020 and 2026. The accounts above therefore belong to earlier terms — open data cannot confirm whether the current mayor was already in office during them.",
     "fiche.cumul": "Other mandates",
     "fiche.commune": "The town",
     "fiche.pop": "Population", "fiche.dep": "Department", "fiche.reg": "Region", "fiche.epci": "Intercommunality",

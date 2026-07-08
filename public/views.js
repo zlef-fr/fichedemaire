@@ -191,10 +191,12 @@
       // `sub` is app-controlled static HTML (a small legend) — safe to inline.
       const block = (title, sub, svg) => `<div class="chart-block"><div class="chart-title"><span class="ct">${esc(title)}</span><span class="cv">${sub || ""}</span></div>${svg}</div>`;
       chartsHtml = `<div class="panel"><h2>${esc(t("fiche.trendTitle"))}</h2><div class="psub">${esc(t("fiche.trendSub", { from: yFrom, to: yTo }))}</div>
+        <div class="mnd-key"><span class="mk-sw"></span><span>${esc(t("mnd.legend"))}</span></div>
         ${s.dette ? block(t("chart.dette"), "", STD.lineChart(s.dette, "#c9302c")) : ""}
         ${s.eb ? block(t("chart.epargne"), "", STD.barChart(s.eb, "#18753c")) : ""}
         ${s.rf && s.df ? block(t("chart.fonct"), `<span class="lg"><i style="background:#000091"></i>${t("legend.rf")}</span><span class="lg"><i style="background:repeating-linear-gradient(90deg,#8a8a94 0 4px,transparent 4px 7px)"></i>${t("legend.df")}</span>`, STD.dualLine(s.rf, s.df, "#000091", "#8a8a94")) : ""}
         ${s.equip ? block(t("chart.equip"), "", STD.lineChart(s.equip, "#b8860b")) : ""}
+        <div class="note mnd-note"><span class="ni">ⓘ</span><span>${esc(t("mnd.note"))}</span></div>
       </div>`;
     }
 
