@@ -12,9 +12,9 @@
       <div class="search-results" id="sr" hidden></div>
     </div>`;
   }
-  function srRow(m) {
+  function srRow(m, pick) {
     const debt = m.fin && m.fin.dettePerHab != null ? STD.fmt(m.fin.dettePerHab) + " €/hab" : "";
-    return `<a href="/maire/${esc(m.path)}" data-link>
+    return `<a href="/maire/${esc(m.path)}"${pick ? "" : " data-link"} data-insee="${esc(m.insee)}">
       <span class="sr-ic">⌂</span>
       <span class="sr-body">
         <span class="sr-nm">${esc(m.commune)} <span class="muted" style="font-weight:500">(${esc(m.dep)})</span></span>
@@ -23,18 +23,21 @@
       ${debt ? `<span class="sr-val">${esc(debt)}</span>` : ""}
     </a>`;
   }
-  function wireSearch(root) {
+  // `onPick(item)` — when supplied, selecting a result invokes the callback with
+  // the chosen commune instead of navigating to its fiche (used by the comparator).
+  function wireSearch(root, onPick) {
     const inp = root.querySelector("#q");
     const box = root.querySelector("#sr");
     if (!inp) return;
     let timer, active = -1, items = [];
     const close = () => { box.hidden = true; active = -1; };
+    const choose = (item) => { if (!item) return; close(); inp.value = ""; onPick(item); };
     const run = async (q) => {
       if (!q.trim()) { close(); return; }
       try {
         const { results } = await STD.getJSON(`/api/search?q=${encodeURIComponent(q)}`);
         items = results;
-        box.innerHTML = results.length ? results.map(srRow).join("") : `<div class="sr-none">${esc(t("search.none"))}</div>`;
+        box.innerHTML = results.length ? results.map((m) => srRow(m, !!onPick)).join("") : `<div class="sr-none">${esc(t("search.none"))}</div>`;
         box.hidden = false; active = -1;
       } catch { close(); }
     };
@@ -43,12 +46,54 @@
       const links = [...box.querySelectorAll("a")];
       if (e.key === "ArrowDown") { e.preventDefault(); active = Math.min(active + 1, links.length - 1); }
       else if (e.key === "ArrowUp") { e.preventDefault(); active = Math.max(active - 1, 0); }
-      else if (e.key === "Enter") { if (links[active]) { e.preventDefault(); STD.go(links[active].getAttribute("href")); } else if (items[0]) { e.preventDefault(); STD.go(`/maire/${items[0].path}`); } return; }
+      else if (e.key === "Enter") {
+        const idx = active >= 0 ? active : 0;
+        if (!items[idx]) return;
+        e.preventDefault();
+        if (onPick) choose(items[idx]); else STD.go(`/maire/${items[idx].path}`);
+        return;
+      }
       else if (e.key === "Escape") { close(); return; }
       links.forEach((l, i) => l.classList.toggle("sr-active", i === active));
     });
+    if (onPick) box.addEventListener("click", (e) => {
+      const a = e.target.closest("a[data-insee]");
+      if (!a) return;
+      e.preventDefault();
+      choose(items.find((x) => x.insee === a.dataset.insee));
+    });
     document.addEventListener("click", (e) => { if (!root.contains(e.target) || !e.target.closest(".searchbox")) close(); });
     setTimeout(() => inp.focus(), 60);
+  }
+
+  // ── shared comparator bits (used by /comparateur and the fiche panel) ───────
+  // A donut ring showing a 0–100 similarity score.
+  function scoreRing(pct, size) {
+    const p = Math.max(0, Math.min(100, pct | 0));
+    return `<span class="cmp-ring" style="--p:${p};--rs:${size || 46}px" role="img" aria-label="${p}% ${esc(t("cmp.match"))}"><span class="cmp-ring-n">${p}<i>%</i></span></span>`;
+  }
+  const AXBADGE = { demo: "cmp.badgeDemo", fin: "cmp.badgeFin", geo: "cmp.badgeGeo" };
+  function cmpBadges(groups) {
+    return ["demo", "fin", "geo"].filter((k) => groups && groups[k] != null)
+      .map((k) => `<span class="cmp-badge cmp-b-${k}">${esc(t(AXBADGE[k]))} ${groups[k]}</span>`).join("");
+  }
+  // One similar-commune row (used in the comparator list and the fiche panel).
+  function cmpItem(r) {
+    const f = r.fin || {};
+    const sub = [
+      r.pop != null ? fmt(r.pop) + " " + t("search.hab") : null,
+      f.dette != null ? fmt(f.dette) + " €/hab" : null,
+      r.reg || r.depNom,
+    ].filter(Boolean).join(" · ");
+    return `<a class="cmp-item" href="/maire/${esc(r.path)}" data-link>
+      ${scoreRing(r.score)}
+      <span class="cmp-item-body">
+        <span class="cmp-item-n">${esc(r.commune)} <em>(${esc(r.dep)})</em></span>
+        <span class="cmp-item-sub">${esc(sub)}</span>
+        <span class="cmp-badges">${cmpBadges(r.groups)}</span>
+      </span>
+      <span class="cmp-item-go" aria-hidden="true">›</span>
+    </a>`;
   }
 
   function footerCredit() {
@@ -154,6 +199,153 @@
         <span class="com-metric com-ep"><span class="cm-l">${t("fiche.epargne")}</span><b>${f.tauxEpargne != null ? f.tauxEpargne + " %" : "—"}</b></span>
       </span>
     </a>`;
+  }
+
+  // ── COMPARATEUR ───────────────────────────────────────────────────────────
+  V.comparateur = async (root) => {
+    const params = new URLSearchParams(location.search);
+    const axes = { demo: true, fin: true, geo: true };
+    let refInsee = params.get("insee") || null;
+
+    root.innerHTML = `<section class="block"><div class="wrap">
+      <div class="sec-head"><h1>${esc(t("cmp.h1"))}</h1></div>
+      <p class="lead" style="margin-bottom:22px">${esc(t("cmp.lead"))}</p>
+      <div id="cmp-pick"></div>
+      <div id="cmp-body"></div>
+    </div></section>`;
+    const pickEl = root.querySelector("#cmp-pick");
+    const bodyEl = root.querySelector("#cmp-body");
+
+    // shareable URL without a full re-render
+    const syncUrl = () => history.replaceState({}, "", STD.localized("/comparateur" + (refInsee ? `?insee=${refInsee}` : ""), STD.lang));
+
+    async function pickRandom() {
+      try {
+        const { deps } = await STD.getJSON("/api/deps");
+        const d = deps[Math.floor(Math.random() * deps.length)];
+        const { communes } = await STD.getJSON(`/api/dep?dep=${encodeURIComponent(d.dep)}`);
+        const c = communes[Math.floor(Math.random() * communes.length)];
+        selectRef(c.insee);
+      } catch {}
+    }
+    function renderPicker() {
+      pickEl.innerHTML = `<div class="cmp-picker">
+        <div class="cmp-pick-h">${esc(t("cmp.pick"))}</div>
+        <p class="muted" style="margin:2px 0 14px;font-size:14px">${esc(t("cmp.pickSub"))}</p>
+        ${searchWidget(false)}
+        <p class="search-hint"><a href="#" id="cmp-rand">${esc(t("cmp.random"))} →</a></p>
+      </div>`;
+      wireSearch(pickEl, (item) => selectRef(item.insee));
+      pickEl.querySelector("#cmp-rand").addEventListener("click", (e) => { e.preventDefault(); pickRandom(); });
+    }
+    function selectRef(insee) { refInsee = insee; syncUrl(); renderResults(); }
+
+    function axisToggle(key, effOn, disabled) {
+      const map = { demo: ["cmp.axisDemo", "cmp.axisDemoSub"], fin: ["cmp.axisFin", "cmp.axisFinSub"], geo: ["cmp.axisGeo", "cmp.axisGeoSub"] };
+      const [lab, sub] = map[key];
+      return `<button class="cmp-toggle cmp-t-${key}${effOn ? " on" : ""}${disabled ? " disabled" : ""}" data-ax="${key}"${disabled ? " disabled" : ""} aria-pressed="${effOn}">
+        <span class="cmp-tk"><span class="cmp-tick">${effOn ? "✓" : ""}</span>${esc(t(lab))}</span>
+        <span class="cmp-ts">${esc(t(sub))}</span>
+      </button>`;
+    }
+
+    async function renderResults() {
+      if (!refInsee) { renderPicker(); bodyEl.innerHTML = ""; return; }
+      pickEl.innerHTML = "";
+      bodyEl.innerHTML = `<div class="wrap" style="padding:30px 0"><div class="spinner"></div></div>`;
+      const enabled = ["demo", "fin", "geo"].filter((k) => axes[k]);
+      let data;
+      try { data = await STD.getJSON(`/api/similar?insee=${encodeURIComponent(refInsee)}&axes=${enabled.join(",") || "demo"}&limit=12`); }
+      catch { bodyEl.innerHTML = `<p class="board-note">${esc(t("cmp.empty"))}</p>`; return; }
+      const ref = data.ref, eff = data.axes, refHasFin = !!(ref.fin);
+
+      const refSub = [
+        ref.pop != null ? fmt(ref.pop) + " " + t("search.hab") : null,
+        ref.fin && ref.fin.dette != null ? fmt(ref.fin.dette) + " €/hab" : null,
+        ref.reg || ref.depNom,
+      ].filter(Boolean).join(" · ");
+
+      bodyEl.innerHTML = `
+      <div class="cmp-ref fade-in">
+        <div class="cmp-ref-l">
+          <span class="cmp-ref-k">${esc(t("cmp.refTitle"))}</span>
+          <span class="cmp-ref-n">${esc(ref.commune)} <em>(${esc(ref.dep)})</em></span>
+          <span class="cmp-ref-sub">${esc(refSub)}</span>
+        </div>
+        <button class="btn btn-ghost" id="cmp-change">↺ ${esc(t("cmp.change"))}</button>
+      </div>
+
+      <div class="cmp-axes">
+        <span class="cmp-axes-h">${esc(t("cmp.axesTitle"))}</span>
+        <div class="cmp-toggles">
+          ${axisToggle("demo", eff.demo, false)}
+          ${axisToggle("fin", eff.fin, !refHasFin)}
+          ${axisToggle("geo", eff.geo, false)}
+        </div>
+      </div>
+      ${!refHasFin ? `<div class="note" style="margin-top:12px"><span class="ni">ⓘ</span><span>${esc(t("cmp.noFinNote"))}</span></div>` : ""}
+
+      <div class="sec-head" style="margin-top:26px"><h2>${esc(t("cmp.resultsTitle"))}</h2></div>
+      <p class="board-note">${esc(t("cmp.resultsSub", { n: data.results.length }))}</p>
+      <div class="cmp-results fade-in">${data.results.length ? data.results.map(cmpItem).join("") : `<p class="board-note">${esc(t("cmp.empty"))}</p>`}</div>
+
+      ${data.results.length ? comparisonTable(ref, data.results.slice(0, 6)) : ""}
+
+      <div class="note cmp-note"><span class="ni">ⓘ</span><span>${esc(t("cmp.note"))}</span></div>`;
+
+      bodyEl.querySelector("#cmp-change").addEventListener("click", () => { refInsee = null; syncUrl(); bodyEl.innerHTML = ""; renderPicker(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+      bodyEl.querySelectorAll(".cmp-toggle:not(.disabled)").forEach((b) => b.addEventListener("click", () => {
+        const k = b.dataset.ax;
+        axes[k] = !axes[k];
+        if (!axes.demo && !axes.fin && !axes.geo) axes[k] = true; // never zero criteria
+        renderResults();
+      }));
+    }
+
+    renderResults();
+  };
+
+  // Side-by-side comparison grid: reference row (highlighted) + closest peers.
+  // Wrapped in an overflow-x container so the wide grid scrolls on narrow screens.
+  function comparisonTable(ref, results) {
+    const money = (v) => (v != null ? fmt(v) + " €" : "—");
+    const epCell = (f) => {
+      if (!f || f.ep == null) return "—";
+      const c = STD.epargneClass(f.ep);
+      return `<b class="cmp-v-${c.cls}">${f.ep} %</b>`;
+    };
+    const desCell = (f) => {
+      if (!f) return "—";
+      const c = STD.desendetClass(f.des, f.epn);
+      const val = f.epn ? t("fiche.negEp") : (f.des != null ? f.des + " " + t("cl.years") : "—");
+      return `<b class="cmp-v-${c.cls}">${esc(val)}</b>`;
+    };
+    const row = (r, isRef) => {
+      const f = r.fin || {};
+      return `<tr class="${isRef ? "cmp-row-ref" : ""}">
+        <td class="cmp-td-name">${isRef ? "" : `<a href="/maire/${esc(r.path)}" data-link>`}<span class="cmp-tn">${esc(r.commune)} <em>(${esc(r.dep)})</em></span>${isRef ? `<span class="cmp-tref-tag">${esc(t("cmp.ref"))}</span>` : ""}${isRef ? "" : "</a>"}</td>
+        <td class="cmp-td-num">${isRef ? "—" : `<span class="cmp-mini">${r.score}<i>%</i></span>`}</td>
+        <td class="cmp-td-num">${r.pop != null ? fmt(r.pop) : "—"}</td>
+        <td class="cmp-td-num">${money(f.dette)}</td>
+        <td class="cmp-td-num">${epCell(f)}</td>
+        <td class="cmp-td-num">${desCell(f)}</td>
+        <td class="cmp-td-reg">${esc(r.reg || r.depNom || "—")}</td>
+      </tr>`;
+    };
+    const th = (k, cls) => `<th class="${cls || ""}">${esc(t(k))}</th>`;
+    return `<div class="panel cmp-table-panel">
+      <h2>${esc(t("cmp.tableTitle"))}</h2>
+      <div class="psub">${esc(t("cmp.tableSub"))}</div>
+      <div class="cmp-table-wrap">
+        <table class="cmp-table">
+          <thead><tr>
+            ${th("cmp.colCommune", "cmp-td-name")}${th("cmp.match", "cmp-td-num")}${th("cmp.colPop", "cmp-td-num")}
+            ${th("cmp.colDette", "cmp-td-num")}${th("cmp.colEpargne", "cmp-td-num")}${th("cmp.colDesendet", "cmp-td-num")}${th("cmp.colReg", "cmp-td-reg")}
+          </tr></thead>
+          <tbody>${row(ref, true)}${results.map((r) => row(r, false)).join("")}</tbody>
+        </table>
+      </div>
+    </div>`;
   }
 
   // ── FICHE ─────────────────────────────────────────────────────────────────
@@ -348,6 +540,11 @@
             </div></div>
         </div>
       </div>
+      <section class="cmp-fiche panel" id="cmp-fiche" aria-label="${esc(t("fiche.similarTitle"))}">
+        <div class="sec-head"><h2>${esc(t("fiche.similarTitle"))}</h2><a href="/comparateur?insee=${encodeURIComponent(f.insee)}" data-link>${esc(t("fiche.similarCta"))}</a></div>
+        <p class="psub">${esc(t("fiche.similarSub"))}</p>
+        <div class="cmp-fiche-list" id="cmp-fiche-list">${`<div class="skel" style="height:66px"></div>`.repeat(4)}</div>
+      </section>
       ${f.related && f.related.length ? `<nav class="related-panel" aria-label="${esc(t("fiche.related", { dep: f.depNom }))}">
         <h3>${esc(t("fiche.related", { dep: f.depNom }))}</h3>
         <div class="related-grid">
@@ -365,6 +562,14 @@
         else { await navigator.clipboard.writeText(url); STD.toast(t("share.copied")); }
       } catch {}
     });
+
+    // lazy-load the "communes comparables" panel (all three axes, top 6)
+    const cmpList = root.querySelector("#cmp-fiche-list");
+    if (cmpList) STD.getJSON(`/api/similar?insee=${encodeURIComponent(f.insee)}&limit=6`).then((d) => {
+      cmpList.innerHTML = d.results && d.results.length
+        ? d.results.map(cmpItem).join("")
+        : `<p class="board-note" style="margin:0">${esc(t("cmp.empty"))}</p>`;
+    }).catch(() => { const s = root.querySelector("#cmp-fiche"); if (s) s.remove(); });
   };
 
   function dateFmt(iso) {
