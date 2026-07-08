@@ -139,6 +139,26 @@ const server = http.createServer((req, res) => {
     });
   }
 
+  // ---- fiche URL canonicalisation ----------------------------------------
+  // Canonical form is /maire/<commune>/<prénom-nom>. Redirect the old single-
+  // segment /maire|/commune/<slug>, and the /commune/<city>/<mayor> alias, to it.
+  const fm = pathOnly.match(/^(\/en)?\/(maire|commune)\/(.+?)\/?$/);
+  if (fm) {
+    const langPfx = fm[1] || "";
+    const kind = fm[2];
+    const rest = fm[3];
+    const qs = url.includes("?") ? url.slice(url.indexOf("?")) : "";
+    if (!rest.includes("/")) {
+      // legacy single segment (old commune slug or INSEE) → canonical path
+      const m = data.store.bySlug[decodeURIComponent(rest)] || data.store.byInsee[decodeURIComponent(rest)];
+      if (m) return send(res, 301, "", { location: `${langPfx}/maire/${m.path}${qs}` });
+    } else if (kind === "commune") {
+      // /commune/<city>/<mayor> alias → /maire/<city>/<mayor>
+      if (data.store.byPath[decodeURIComponent(rest)]) return send(res, 301, "", { location: `${langPfx}/maire/${rest}${qs}` });
+    }
+    // /maire/<city>/<mayor> falls through to the SPA shell (SSR-injected)
+  }
+
   serveStatic(req, res, url);
 });
 

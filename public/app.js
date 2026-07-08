@@ -292,7 +292,8 @@ const routes = [
   { re: /^\/communes\/?$/, view: "communes" },
   { re: /^\/classements\/?$/, view: "classements" },
   { re: /^\/methode\/?$/, view: "methode" },
-  { re: /^\/(?:maire|commune)\/([^/]+)\/?$/, view: "fiche" },
+  { re: /^\/presse\/?$/, view: "presse" },
+  { re: /^\/(?:maire|commune)\/([^/]+)(?:\/([^/]+))?\/?$/, view: "fiche" },
 ];
 STD.go = (path, replace) => {
   const full = STD.localized(path, STD.lang);

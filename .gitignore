@@ -3,3 +3,4 @@ var/
 pipeline/raw/
 *.log
 .DS_Store
+scripts/fonts/

@@ -1,7 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs><clipPath id="r"><rect width="64" height="64" rx="14"/></clipPath></defs>
-  <rect width="64" height="64" rx="14" fill="#f5f6f2"/>
-  <g clip-path="url(#r)">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 176">
+    <g transform="translate(24,40) scale(1.5)">
+    <defs><clipPath id="wr"><rect width="64" height="64" rx="14"/></clipPath></defs>
+    <rect width="64" height="64" rx="14" fill="#f5f6f2"/>
+    <g clip-path="url(#wr)">
     <g transform="rotate(-33 32 32)">
       <rect x="-16" y="16" width="96" height="9.5" fill="#000091"/>
       <rect x="-16" y="25.5" width="96" height="9.5" fill="#ffffff"/>
@@ -13,5 +14,9 @@
       </g>
     </g>
   </g>
-  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="13.25" fill="none" stroke="#d6d8cd" stroke-width="1.5"/>
-</svg>
+    <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="13.25" fill="none" stroke="#d6d8cd" stroke-width="1.5"/>
+  </g>
+    <text x="150" y="118" font-family="Inter, system-ui, sans-serif" font-size="72" font-weight="800" letter-spacing="-2">
+      <tspan fill="#000091">Fiche</tspan><tspan fill="#161616">DeMaire</tspan><tspan fill="#e1000f">.fr</tspan>
+    </text>
+  </svg>

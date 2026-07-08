@@ -14,7 +14,7 @@
   }
   function srRow(m) {
     const debt = m.fin && m.fin.dettePerHab != null ? STD.fmt(m.fin.dettePerHab) + " €/hab" : "";
-    return `<a href="/maire/${esc(m.slug)}" data-link>
+    return `<a href="/maire/${esc(m.path)}" data-link>
       <span class="sr-ic">⌂</span>
       <span class="sr-body">
         <span class="sr-nm">${esc(m.commune)} <span class="muted" style="font-weight:500">(${esc(m.dep)})</span></span>
@@ -43,7 +43,7 @@
       const links = [...box.querySelectorAll("a")];
       if (e.key === "ArrowDown") { e.preventDefault(); active = Math.min(active + 1, links.length - 1); }
       else if (e.key === "ArrowUp") { e.preventDefault(); active = Math.max(active - 1, 0); }
-      else if (e.key === "Enter") { if (links[active]) { e.preventDefault(); STD.go(links[active].getAttribute("href")); } else if (items[0]) { e.preventDefault(); STD.go(`/maire/${items[0].slug}`); } return; }
+      else if (e.key === "Enter") { if (links[active]) { e.preventDefault(); STD.go(links[active].getAttribute("href")); } else if (items[0]) { e.preventDefault(); STD.go(`/maire/${items[0].path}`); } return; }
       else if (e.key === "Escape") { close(); return; }
       links.forEach((l, i) => l.classList.toggle("sr-active", i === active));
     });
@@ -89,7 +89,7 @@
       e.preventDefault();
       try { const { deps } = await STD.getJSON("/api/deps"); const d = deps[Math.floor(Math.random() * deps.length)];
         const { communes } = await STD.getJSON(`/api/dep?dep=${encodeURIComponent(d.dep)}`);
-        const c = communes[Math.floor(Math.random() * communes.length)]; STD.go(`/maire/${c.slug}`);
+        const c = communes[Math.floor(Math.random() * communes.length)]; STD.go(`/maire/${c.path}`);
       } catch {}
     });
 
@@ -144,7 +144,7 @@
   function comRow(m) {
     const f = m.fin || {};
     const dc = STD.desendetClass(f.desendet, f.epargneNegative);
-    return `<a class="com-row" href="/maire/${esc(m.slug)}" data-link>
+    return `<a class="com-row" href="/maire/${esc(m.path)}" data-link>
       <span class="cbody">
         <span class="cn">${esc(m.commune)}</span>
         <span class="cs">${esc(t("search.mayor"))} : ${esc(STD.mayorName(m))}${m.pop != null ? " · " + fmt(m.pop) + " " + t("search.hab") : ""}</span>
@@ -158,8 +158,8 @@
 
   // ── FICHE ─────────────────────────────────────────────────────────────────
   V.fiche = async (root, mm) => {
-    const slug = decodeURIComponent(mm[1]);
-    const f = await STD.getJSON(`/api/fiche/${encodeURIComponent(slug)}`);
+    const key = mm[2] ? `${mm[1]}/${mm[2]}` : mm[1];
+    const f = await STD.getJSON(`/api/fiche/${key}`);
     const fin = f.finances;
     const r = fin && fin.ratios;
 
@@ -348,6 +348,13 @@
             </div></div>
         </div>
       </div>
+      ${f.related && f.related.length ? `<nav class="related-panel" aria-label="${esc(t("fiche.related", { dep: f.depNom }))}">
+        <h3>${esc(t("fiche.related", { dep: f.depNom }))}</h3>
+        <div class="related-grid">
+          ${f.related.map((r) => `<a href="/maire/${esc(r.path)}" data-link class="related-link"><span class="rl-c">${esc(r.commune)}</span><span class="rl-m">${esc(STD.mayorName(r))}</span></a>`).join("")}
+        </div>
+        <a href="/communes?dep=${encodeURIComponent(f.dep)}" data-link class="related-all">${esc(t("fiche.relatedAll", { dep: f.depNom }))} →</a>
+      </nav>` : ""}
     </div>`;
 
     const share = root.querySelector("#share");
@@ -393,7 +400,7 @@
         else if (cfg.unit === "cl.ans") val = m.value + " " + t("cl.ans");
         else if (cfg.unit === "cl.years") val = m.value + " " + t("cl.years");
         else val = fmt(m.value);
-        return `<a class="rank-row" href="/maire/${esc(m.slug)}" data-link>
+        return `<a class="rank-row" href="/maire/${esc(m.path)}" data-link>
           <span class="pos">${i + 1}</span>
           <span class="who"><span class="nm">${esc(m.commune)} <span class="muted" style="font-weight:500">(${esc(m.dep)})</span></span>
             <span class="sub">${esc(STD.mayorName(m))}${m.pop != null ? " · " + fmt(m.pop) + " " + t("cl.hab") : ""}</span></span>
@@ -428,5 +435,153 @@
         ${stats.generatedAt ? `<p class="muted" style="font-size:13px;margin-top:18px">${esc(t("me.updated", { date: dateFmt(stats.generatedAt) }))}</p>` : ""}
       </div>
     </div></section>`;
+  };
+
+  // ── PRESSE / MEDIA KIT ─────────────────────────────────────────────────────
+  V.presse = async (root) => {
+    const en = STD.lang === "en";
+    const stats = await STD.getJSON("/api/stats").catch(() => ({}));
+    const P = {
+      title: en ? "Media kit" : "Kit média",
+      lead: en
+        ? "Everything you need to write about FicheDeMaire.fr — logos, colours, screenshots and a ready-to-use description. Free to use with attribution."
+        : "Tout pour parler de FicheDeMaire.fr — logos, couleurs, captures d'écran et une description prête à l'emploi. Libre d'utilisation avec mention de la source.",
+      aboutT: en ? "In one sentence" : "En une phrase",
+      about: en
+        ? "FicheDeMaire.fr is the living record of every French commune and its mayor: who runs it, and how healthy its finances are — 34,637 communes, 100 % from official open data."
+        : "FicheDeMaire.fr, c'est la fiche vivante de chaque commune française et de son maire : qui la dirige, et dans quel état sont ses finances — 34 637 communes, 100 % à partir de données publiques officielles.",
+      boilerT: en ? "Boilerplate (copy-paste)" : "Descriptif à copier-coller",
+      boiler: en
+        ? "FicheDeMaire.fr gathers, for each of France's 34,637 communes, the identity of its mayor (from the national register of elected officials) and the health of the town's finances 2017–2024 (from OFGL), alongside declarations of interests (HATVP) and awarded public contracts (DECP). No score, no opinion — only sourced facts. An independent project by zlef.fr."
+        : "FicheDeMaire.fr rassemble, pour chacune des 34 637 communes de France, l'identité de son maire (Répertoire national des élus) et la santé financière de la commune 2017–2024 (OFGL), avec les déclarations d'intérêts (HATVP) et les marchés publics attribués (DECP). Aucune note, aucun avis — seulement des faits sourcés. Projet indépendant réalisé par zlef.fr.",
+      copy: en ? "Copy" : "Copier",
+      copied: en ? "Copied" : "Copié",
+      factsT: en ? "Key facts" : "Chiffres clés",
+      facts: [
+        [fmt(stats.count || 34637), en ? "communes & mayors" : "communes & maires"],
+        [fmt(34562), en ? "with published finances" : "avec finances publiées"],
+        ["2017–2024", en ? "years of accounts" : "années de comptes"],
+        ["RNE · OFGL · HATVP · DECP", en ? "open-data sources" : "sources open-data"],
+      ],
+      logoT: en ? "Logo" : "Logo",
+      logoNote: en
+        ? "The logomark is an écharpe tricolore with its gilt fringe — the French mayoral sash. Keep clear space around it; don't recolour, rotate or add effects."
+        : "Le logo est une écharpe tricolore à frange dorée — l'écharpe des maires. Gardez une marge autour ; ne le recolorez pas, ne le tournez pas, n'ajoutez pas d'effet.",
+      mark: en ? "Logomark" : "Symbole",
+      wordmark: en ? "Wordmark" : "Logotype",
+      colorsT: en ? "Colours" : "Couleurs",
+      colorsNote: en ? "Click a swatch to copy its hex." : "Cliquez sur une couleur pour copier son code hex.",
+      typoT: "Typographie",
+      typoBody: en
+        ? "The interface is set in Inter. Numbers use tabular figures. Headlines are weight 800."
+        : "L'interface utilise Inter. Les chiffres sont en chasse fixe (tabular). Les titres sont en graisse 800.",
+      shotsT: en ? "Screenshots" : "Captures d'écran",
+      shotsNote: en ? "Right-click to save, or download the full kit below." : "Clic droit pour enregistrer, ou téléchargez le kit complet ci-dessous.",
+      rulesT: en ? "Usage" : "Utilisation",
+      dos: en
+        ? ["Use the logo as provided (SVG preferred)", "Credit “FicheDeMaire.fr” and link back", "Screenshots may be published freely"]
+        : ["Utilisez le logo tel quel (SVG de préférence)", "Créditez « FicheDeMaire.fr » avec un lien", "Les captures peuvent être publiées librement"],
+      donts: en
+        ? ["Don't recolour, distort or rotate the logo", "Don't imply an official or governmental endorsement", "Don't present the data as an opinion or a rating"]
+        : ["Ne recolorez, ne déformez, ne tournez pas le logo", "Ne suggérez pas un caractère officiel ou gouvernemental", "Ne présentez pas les données comme un avis ou une note"],
+      dlAll: en ? "Download the full media kit (.zip)" : "Télécharger le kit média complet (.zip)",
+      contactT: "Contact",
+      contact: en
+        ? "Questions, interviews or data requests:"
+        : "Questions, interviews ou demandes de données :",
+    };
+    const colors = [
+      ["Bleu France", "#000091"], ["Rouge Marianne", "#e1000f"],
+      [en ? "Gilt (fringe)" : "Or (frange)", "#b08d2e"],
+      [en ? "Ivory" : "Ivoire", "#f5f6f2"], [en ? "Ink" : "Encre", "#161616"],
+    ];
+    const dlBtn = (href, label) => `<a class="kit-dl" href="${href}" download>↓ ${esc(label)}</a>`;
+
+    root.innerHTML = `<section class="block"><div class="wrap presse">
+      <div class="prose" style="max-width:760px">
+        <span class="eyebrow"><span class="echarpe"><i></i><i></i><i></i></span> FicheDeMaire.fr</span>
+        <h1>${esc(P.title)}</h1>
+        <p class="lead">${esc(P.lead)}</p>
+      </div>
+
+      <div class="kit-card">
+        <h2>${esc(P.aboutT)}</h2>
+        <p class="kit-about">${esc(P.about)}</p>
+      </div>
+
+      <div class="kit-card">
+        <h2>${esc(P.factsT)}</h2>
+        <div class="kit-facts">
+          ${P.facts.map(([n, l]) => `<div class="kit-fact"><div class="kf-n">${esc(n)}</div><div class="kf-l">${esc(l)}</div></div>`).join("")}
+        </div>
+      </div>
+
+      <div class="kit-card">
+        <h2>${esc(P.logoT)}</h2>
+        <p class="kit-sub">${esc(P.logoNote)}</p>
+        <div class="kit-logos">
+          <div class="kit-logo">
+            <div class="kit-preview light"><img src="/kit/logomark.svg" alt="${esc(P.mark)}" width="96" height="96"></div>
+            <div class="kit-name">${esc(P.mark)}</div>
+            <div class="kit-dls">${dlBtn("/kit/logomark.svg", "SVG")}${dlBtn("/kit/logomark-1024.png", "PNG")}</div>
+          </div>
+          <div class="kit-logo wide">
+            <div class="kit-preview light"><img src="/kit/wordmark.svg" alt="${esc(P.wordmark)}" style="max-height:64px"></div>
+            <div class="kit-name">${esc(P.wordmark)}</div>
+            <div class="kit-dls">${dlBtn("/kit/wordmark.svg", "SVG")}${dlBtn("/kit/wordmark-1520.png", "PNG")}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="kit-card">
+        <h2>${esc(P.colorsT)}</h2>
+        <p class="kit-sub">${esc(P.colorsNote)}</p>
+        <div class="kit-colors">
+          ${colors.map(([n, hex]) => `<button class="kit-swatch" data-hex="${hex}"><span class="ks-chip" style="background:${hex}"></span><span class="ks-n">${esc(n)}</span><span class="ks-h">${hex}</span></button>`).join("")}
+        </div>
+      </div>
+
+      <div class="kit-card">
+        <h2>${esc(P.typoT)}</h2>
+        <p class="kit-sub">${esc(P.typoBody)}</p>
+        <div class="kit-typo">Aa Bb Cc &nbsp; 0123456789 &nbsp; €%</div>
+      </div>
+
+      <div class="kit-card">
+        <h2>${esc(P.shotsT)}</h2>
+        <p class="kit-sub">${esc(P.shotsNote)}</p>
+        <div class="kit-shots">
+          <a href="/kit/screen-home.png" target="_blank" rel="noopener"><img src="/kit/screen-home.png" loading="lazy" alt="Accueil"></a>
+          <a href="/kit/screen-fiche.png" target="_blank" rel="noopener"><img src="/kit/screen-fiche.png" loading="lazy" alt="Fiche"></a>
+          <a href="/kit/screen-classements.png" target="_blank" rel="noopener"><img src="/kit/screen-classements.png" loading="lazy" alt="Classements"></a>
+        </div>
+      </div>
+
+      <div class="kit-card">
+        <h2>${esc(P.rulesT)}</h2>
+        <div class="kit-rules">
+          <ul class="do">${P.dos.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+          <ul class="dont">${P.donts.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+        </div>
+      </div>
+
+      <div class="kit-card boiler">
+        <h2>${esc(P.boilerT)}</h2>
+        <div class="kit-boiler"><p id="boiler-text">${esc(P.boiler)}</p><button class="btn btn-ghost" id="copy-boiler">⧉ ${esc(P.copy)}</button></div>
+      </div>
+
+      <div class="kit-final">
+        <a class="btn btn-primary kit-zip" href="/kit/fichedemaire-media-kit.zip" download>${esc(P.dlAll)}</a>
+        <p class="kit-contact">${esc(P.contactT)} — ${esc(P.contact)} <a href="https://zlef.fr">zlef.fr</a></p>
+      </div>
+    </div></section>`;
+
+    root.querySelectorAll(".kit-swatch").forEach((b) => b.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(b.dataset.hex); STD.toast(P.copied + " · " + b.dataset.hex); } catch {}
+    }));
+    const cb = root.querySelector("#copy-boiler");
+    cb && cb.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(P.boiler); STD.toast(P.copied); } catch {}
+    });
   };
 })();

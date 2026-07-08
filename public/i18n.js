@@ -86,6 +86,8 @@ window.STD_I18N = {
     "hatvp.link": "Voir la déclaration sur hatvp.fr →",
     "hatvp.filed": "Déclaration déposée le {date}",
     "fiche.sources": "Sources",
+    "fiche.related": "Autres communes du département ({dep})",
+    "fiche.relatedAll": "Voir toutes les communes du {dep}",
     "src.rne": "Répertoire national des élus",
     "src.ofgl": "Comptes de la commune (OFGL)",
     "src.share": "Partager cette fiche",
@@ -104,6 +106,7 @@ window.STD_I18N = {
     "me.updated": "Données générées le {date}.",
 
     "footer.data": "Données : RNE · OFGL · HATVP (licence Ouverte).",
+    "footer.presse": "Kit média",
     "footer.madeby": "Projet indépendant, réalisé avec patriotisme",
     "footer.by": "par",
     "footer.sisters": "Aussi : ",
@@ -211,6 +214,8 @@ window.STD_I18N = {
     "hatvp.link": "See the declaration on hatvp.fr →",
     "hatvp.filed": "Filed on {date}",
     "fiche.sources": "Sources",
+    "fiche.related": "Other towns in the department ({dep})",
+    "fiche.relatedAll": "See all towns in {dep}",
     "src.rne": "National register of elected officials",
     "src.ofgl": "Town accounts (OFGL)",
     "src.share": "Share this page",
@@ -229,6 +234,7 @@ window.STD_I18N = {
     "me.updated": "Data generated on {date}.",
 
     "footer.data": "Data: RNE · OFGL · HATVP (Licence Ouverte).",
+    "footer.presse": "Media kit",
     "footer.madeby": "Independent project, made with patriotism",
     "footer.by": "by",
     "footer.sisters": "Also: ",
