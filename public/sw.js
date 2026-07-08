@@ -1,6 +1,6 @@
 // Minimal service worker: network-first for navigations, cache-first for static.
-const CACHE = "fdm-v4";
-const ASSETS = ["/styles.css?v=4", "/app.js?v=4", "/views.js?v=4", "/i18n.js?v=4", "/favicon.svg?v=4"];
+const CACHE = "fdm-v5";
+const ASSETS = ["/styles.css?v=5", "/app.js?v=5", "/views.js?v=5", "/i18n.js?v=5", "/favicon.svg?v=5"];
 self.addEventListener("install", (e) => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS).catch(() => {}))); });
 self.addEventListener("activate", (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k))))); self.clients.claim(); });
 self.addEventListener("fetch", (e) => {

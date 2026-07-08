@@ -35,7 +35,7 @@ header.top { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255
 .top-inner { display: flex; align-items: center; gap: 20px; height: 62px; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--ink); letter-spacing: -.3px; }
 .brand:hover { text-decoration: none; }
-.brand .sash { width: 30px; height: 30px; flex: none; background: url(/favicon.svg?v=4) center/contain no-repeat; }
+.brand .sash { width: 30px; height: 30px; flex: none; background: url(/favicon.svg?v=5) center/contain no-repeat; }
 .brand b { color: var(--bleu); }
 .brand .dot-fr { color: var(--rouge); }
 nav.main { display: flex; gap: 4px; margin-left: auto; align-items: center; }

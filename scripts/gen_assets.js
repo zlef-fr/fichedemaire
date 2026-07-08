@@ -12,7 +12,7 @@ const BLEU = "#000091", ROUGE = "#e1000f", IVORY = "#f5f6f2", LINE = "#d6d8cd";
 // The sash + fringe, drawn inside a 64×64 box (rotated band, clipped to `clip`).
 function sashBand(clip) {
   return `<g clip-path="url(#${clip})">
-    <g transform="rotate(-33 32 32)">
+    <g transform="rotate(33 32 32)">
       <rect x="-16" y="16" width="96" height="9.5" fill="${BLEU}"/>
       <rect x="-16" y="25.5" width="96" height="9.5" fill="#ffffff"/>
       <rect x="-16" y="35" width="96" height="9.5" fill="${ROUGE}"/>
@@ -47,7 +47,7 @@ function appIconSvg(size) {
       <rect width="64" height="64" rx="14" fill="#ffffff"/>
     </g>
     <g clip-path="url(#c)"><g transform="translate(${inset},${inset}) scale(${scale})">
-      <g transform="rotate(-33 32 32)">
+      <g transform="rotate(33 32 32)">
         <rect x="-16" y="16" width="96" height="9.5" fill="${BLEU}"/>
         <rect x="-16" y="25.5" width="96" height="9.5" fill="#ffffff"/>
         <rect x="-16" y="35" width="96" height="9.5" fill="${ROUGE}"/>

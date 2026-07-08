@@ -3,7 +3,7 @@
     <defs><clipPath id="wr"><rect width="64" height="64" rx="14"/></clipPath></defs>
     <rect width="64" height="64" rx="14" fill="#f5f6f2"/>
     <g clip-path="url(#wr)">
-    <g transform="rotate(-33 32 32)">
+    <g transform="rotate(33 32 32)">
       <rect x="-16" y="16" width="96" height="9.5" fill="#000091"/>
       <rect x="-16" y="25.5" width="96" height="9.5" fill="#ffffff"/>
       <rect x="-16" y="35" width="96" height="9.5" fill="#e1000f"/>
