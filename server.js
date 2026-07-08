@@ -88,8 +88,11 @@ const server = http.createServer((req, res) => {
     if (p === "/api/similar") {
       const insee = u.searchParams.get("insee") || "";
       const ax = (u.searchParams.get("axes") || "demo,fin,geo").split(",");
+      const indsParam = u.searchParams.get("inds"); // extended per-indicator selection
+      const inds = indsParam != null ? indsParam.split(",").map((s) => s.trim()).filter(Boolean) : null;
       const limit = parseInt(u.searchParams.get("limit"), 10) || 6;
       const out = similar.similar(insee, {
+        inds,
         demo: ax.includes("demo"), fin: ax.includes("fin"), geo: ax.includes("geo"), limit,
         scope: u.searchParams.get("scope") || "france",
         radiusKm: parseInt(u.searchParams.get("radius"), 10) || 25,

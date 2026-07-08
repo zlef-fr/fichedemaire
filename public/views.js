@@ -202,14 +202,30 @@
   }
 
   // ── COMPARATEUR ───────────────────────────────────────────────────────────
+  // ── comparator indicator catalogue (client mirror of lib/similar.js IND) ────
+  // Each axis groups a few atomic indicators; extended settings let the visitor
+  // enable any subset instead of whole axes.
+  const AXIS_INDS = { demo: ["pop", "age"], fin: ["dette", "ep", "des", "df", "perso"], geo: ["geo"] };
+  const IND_AXIS = { pop: "demo", age: "demo", dette: "fin", ep: "fin", des: "fin", df: "fin", perso: "fin", geo: "geo" };
+  const ALL_INDS = ["pop", "age", "dette", "ep", "des", "df", "perso", "geo"];
+  const IND_LABEL = { pop: "cmp.indPop", age: "cmp.indAge", dette: "cmp.indDette", ep: "cmp.indEp", des: "cmp.indDes", df: "cmp.indDf", perso: "cmp.indPerso", geo: "cmp.indGeo" };
+  const AXIS_LABEL = { demo: "cmp.axisDemo", fin: "cmp.axisFin", geo: "cmp.axisGeo" };
+
   V.comparateur = async (root) => {
     const params = new URLSearchParams(location.search);
-    const axes = { demo: true, fin: true, geo: true };
     let refInsee = params.get("insee") || null;
     const SCOPES = ["france", "region", "dep", "metro", "radius"];
     const KM_STEPS = [10, 25, 50, 100];
     let scope = SCOPES.includes(params.get("scope")) ? params.get("scope") : "france";
     let radiusKm = KM_STEPS.includes(+params.get("radius")) ? +params.get("radius") : 25;
+
+    // enabled indicators (extended settings). Default = every indicator; a custom
+    // subset comes from ?inds= and auto-opens the advanced panel.
+    let sel = new Set(ALL_INDS);
+    const indsP = params.get("inds");
+    if (indsP) { const s = indsP.split(",").filter((k) => IND_AXIS[k]); if (s.length) sel = new Set(s); }
+    let advOpen = !!indsP;
+    let lastData = null;
 
     root.innerHTML = `<section class="block"><div class="wrap">
       <div class="sec-head"><h1>${esc(t("cmp.h1"))}</h1></div>
@@ -224,7 +240,8 @@
     const syncUrl = () => {
       const q = [];
       if (refInsee) q.push("insee=" + refInsee);
-      if (scope !== "france") { q.push("scope=" + scope); if (scope === "radius") q.push("radius=" + radiusKm); }
+      if (sel.size < ALL_INDS.length) q.push("inds=" + ALL_INDS.filter((k) => sel.has(k)).join(","));
+      if (sel.has("geo") && scope !== "france") { q.push("scope=" + scope); if (scope === "radius") q.push("radius=" + radiusKm); }
       history.replaceState({}, "", STD.localized("/comparateur" + (q.length ? "?" + q.join("&") : ""), STD.lang));
     };
 
@@ -249,13 +266,34 @@
     }
     function selectRef(insee) { refInsee = insee; syncUrl(); renderResults(); }
 
-    function axisToggle(key, effOn, disabled) {
+    // Master axis toggle. Reflects the current indicator selection: fully on (✓),
+    // partial (–, some but not all of its indicators enabled) or off. Disabled when
+    // the reference supports none of the axis's indicators (e.g. no OFGL finances).
+    function axisToggle(key, avail) {
       const map = { demo: ["cmp.axisDemo", "cmp.axisDemoSub"], fin: ["cmp.axisFin", "cmp.axisFinSub"], geo: ["cmp.axisGeo", "cmp.axisGeoSub"] };
       const [lab, sub] = map[key];
-      return `<button class="cmp-toggle cmp-t-${key}${effOn ? " on" : ""}${disabled ? " disabled" : ""}" data-ax="${key}"${disabled ? " disabled" : ""} aria-pressed="${effOn}">
-        <span class="cmp-tk"><span class="cmp-tick">${effOn ? "✓" : ""}</span>${esc(t(lab))}</span>
+      const usable = AXIS_INDS[key].filter((k) => avail[k]);
+      const disabled = usable.length === 0;
+      const on = usable.filter((k) => sel.has(k));
+      const someOn = on.length > 0, allOn = usable.length > 0 && on.length === usable.length;
+      const mark = disabled ? "" : allOn ? "✓" : someOn ? "–" : "";
+      return `<button class="cmp-toggle cmp-t-${key}${someOn ? " on" : ""}${someOn && !allOn ? " partial" : ""}${disabled ? " disabled" : ""}" data-ax="${key}"${disabled ? " disabled" : ""} aria-pressed="${someOn}">
+        <span class="cmp-tk"><span class="cmp-tick">${mark}</span>${esc(t(lab))}</span>
         <span class="cmp-ts">${esc(t(sub))}</span>
       </button>`;
+    }
+
+    // Extended settings — per-indicator chips, grouped by axis. A chip is disabled
+    // when the reference lacks that indicator (its feature is missing).
+    function advPanel(avail) {
+      const group = (ax) => {
+        const chips = AXIS_INDS[ax].map((k) => {
+          const dis = !avail[k], on = sel.has(k) && !dis;
+          return `<button class="cmp-chip cmp-c-${ax}${on ? " on" : ""}${dis ? " disabled" : ""}" data-ind="${k}"${dis ? " disabled" : ""} aria-pressed="${on}"><span class="cmp-chip-tick">${on ? "✓" : ""}</span>${esc(t(IND_LABEL[k]))}</button>`;
+        }).join("");
+        return `<div class="cmp-ind-group cmp-g-${ax}"><span class="cmp-ind-h">${esc(t(AXIS_LABEL[ax]))}</span><div class="cmp-chips">${chips}</div></div>`;
+      };
+      return `<div class="cmp-adv fade-in"><p class="cmp-adv-sub">${esc(t("cmp.advSub"))}</p>${group("demo")}${group("fin")}${group("geo")}</div>`;
     }
 
     // Geographic amplitude — the sub-parameter of the "geography" axis. Restricts
@@ -279,17 +317,27 @@
       </div>`;
     }
 
-    async function renderResults() {
+    // Fetch the ranking for the current selection, then paint. `refetch:false`
+    // repaints from the cached last response (used when only toggling the advanced
+    // panel open/closed — no selection change, so no network round-trip / spinner).
+    async function renderResults(o = {}) {
       if (!refInsee) { renderPicker(); bodyEl.innerHTML = ""; return; }
       pickEl.innerHTML = "";
-      bodyEl.innerHTML = `<div class="wrap" style="padding:30px 0"><div class="spinner"></div></div>`;
-      const enabled = ["demo", "fin", "geo"].filter((k) => axes[k]);
-      const scopeQ = axes.geo && scope !== "france" ? `&scope=${scope}${scope === "radius" ? `&radius=${radiusKm}` : ""}` : "";
-      let data;
-      try { data = await STD.getJSON(`/api/similar?insee=${encodeURIComponent(refInsee)}&axes=${enabled.join(",") || "demo"}&limit=12${scopeQ}`); }
-      catch { bodyEl.innerHTML = `<p class="board-note">${esc(t("cmp.empty"))}</p>`; return; }
-      scope = data.scope; // adopt the server's effective scope (handles fallback)
-      const ref = data.ref, eff = data.axes, refHasFin = !!(ref.fin);
+      let data = lastData;
+      if (o.refetch !== false || !data) {
+        bodyEl.innerHTML = `<div class="wrap" style="padding:30px 0"><div class="spinner"></div></div>`;
+        const enabled = ALL_INDS.filter((k) => sel.has(k));
+        const scopeQ = sel.has("geo") && scope !== "france" ? `&scope=${scope}${scope === "radius" ? `&radius=${radiusKm}` : ""}` : "";
+        try { data = await STD.getJSON(`/api/similar?insee=${encodeURIComponent(refInsee)}&inds=${enabled.join(",") || "pop"}&limit=12${scopeQ}`); }
+        catch { bodyEl.innerHTML = `<p class="board-note">${esc(t("cmp.empty"))}</p>`; return; }
+        lastData = data;
+        scope = data.scope; // adopt the server's effective scope (handles fallback)
+      }
+      paint(data);
+    }
+
+    function paint(data) {
+      const ref = data.ref, avail = data.indsAvail || {}, eff = data.axes, refHasFin = !!(ref.fin);
 
       const refSub = [
         ref.pop != null ? fmt(ref.pop) + " " + t("search.hab") : null,
@@ -308,12 +356,16 @@
       </div>
 
       <div class="cmp-axes">
-        <span class="cmp-axes-h">${esc(t("cmp.axesTitle"))}</span>
-        <div class="cmp-toggles">
-          ${axisToggle("demo", eff.demo, false)}
-          ${axisToggle("fin", eff.fin, !refHasFin)}
-          ${axisToggle("geo", eff.geo, false)}
+        <div class="cmp-axes-top">
+          <span class="cmp-axes-h">${esc(t("cmp.axesTitle"))}</span>
+          <button class="cmp-adv-toggle${advOpen ? " open" : ""}" id="cmp-adv-btn" aria-expanded="${advOpen}">⚙ ${esc(t(advOpen ? "cmp.advClose" : "cmp.advOpen"))}</button>
         </div>
+        <div class="cmp-toggles">
+          ${axisToggle("demo", avail)}
+          ${axisToggle("fin", avail)}
+          ${axisToggle("geo", avail)}
+        </div>
+        ${advOpen ? advPanel(avail) : ""}
         ${eff.geo ? scopeControl(data) : ""}
       </div>
       ${!refHasFin ? `<div class="note" style="margin-top:12px"><span class="ni">ⓘ</span><span>${esc(t("cmp.noFinNote"))}</span></div>` : ""}
@@ -326,15 +378,35 @@
 
       <div class="note cmp-note"><span class="ni">ⓘ</span><span>${esc(t("cmp.note"))}</span></div>`;
 
-      bodyEl.querySelector("#cmp-change").addEventListener("click", () => { refInsee = null; syncUrl(); bodyEl.innerHTML = ""; renderPicker(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+      bodyEl.querySelector("#cmp-change").addEventListener("click", () => { refInsee = null; lastData = null; syncUrl(); bodyEl.innerHTML = ""; renderPicker(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+
+      // advanced panel is purely presentational — toggle without refetching
+      bodyEl.querySelector("#cmp-adv-btn").addEventListener("click", () => { advOpen = !advOpen; renderResults({ refetch: false }); });
+
+      // master axis toggle → flip every usable indicator of that axis at once
       bodyEl.querySelectorAll(".cmp-toggle:not(.disabled)").forEach((b) => b.addEventListener("click", () => {
-        const k = b.dataset.ax;
-        axes[k] = !axes[k];
-        if (!axes.demo && !axes.fin && !axes.geo) axes[k] = true; // never zero criteria
-        if (!axes.geo) scope = "france"; // amplitude is a geography sub-parameter
-        syncUrl();
-        renderResults();
+        const ax = b.dataset.ax;
+        const usable = AXIS_INDS[ax].filter((k) => avail[k]);
+        const anyOn = usable.some((k) => sel.has(k));
+        const next = new Set(sel);
+        usable.forEach((k) => (anyOn ? next.delete(k) : next.add(k)));
+        if (next.size === 0) return;               // never zero criteria
+        sel = next;
+        if (!sel.has("geo")) scope = "france";      // amplitude is a geography sub-parameter
+        syncUrl(); renderResults();
       }));
+
+      // per-indicator chip → flip a single indicator
+      bodyEl.querySelectorAll(".cmp-chip:not(.disabled)").forEach((b) => b.addEventListener("click", () => {
+        const k = b.dataset.ind;
+        const next = new Set(sel);
+        next.has(k) ? next.delete(k) : next.add(k);
+        if (next.size === 0) return;               // never zero criteria
+        sel = next;
+        if (!sel.has("geo")) scope = "france";
+        syncUrl(); renderResults();
+      }));
+
       bodyEl.querySelectorAll(".cmp-seg:not(.disabled)").forEach((b) => b.addEventListener("click", () => {
         scope = b.dataset.scope; syncUrl(); renderResults();
       }));

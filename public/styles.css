@@ -532,6 +532,32 @@ footer.foot .fi { display: flex; justify-content: space-between; gap: 16px; flex
 .cmp-scope-count { margin-top: 10px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
 .cmp-b-km { background: var(--bg-2); color: var(--ink-2); }
 
+/* extended settings — per-indicator chips (finer than the whole-axis toggles) */
+.cmp-axes-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.cmp-axes-top .cmp-axes-h { margin-bottom: 0; }
+.cmp-adv-toggle { display: inline-flex; align-items: center; gap: 5px; padding: 6px 13px; border: 1.5px solid var(--line-2); border-radius: 999px; background: var(--card); color: var(--ink-2); font-weight: 700; font-size: 12.5px; font-family: inherit; cursor: pointer; transition: border-color .15s, color .15s, background .15s; white-space: nowrap; }
+.cmp-adv-toggle:hover { border-color: var(--faint); color: var(--ink); }
+.cmp-adv-toggle.open { border-color: var(--bleu); color: var(--bleu); background: var(--bleu-soft); }
+.cmp-adv { margin-top: 14px; padding: 15px; border: 1px dashed var(--line); border-radius: 14px; background: var(--bg-2); }
+.cmp-adv-sub { margin: 0 0 13px; font-size: 13px; color: var(--muted); }
+.cmp-ind-group { margin-bottom: 13px; }
+.cmp-ind-group:last-child { margin-bottom: 0; }
+.cmp-ind-h { display: block; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 8px; }
+.cmp-chips { display: flex; gap: 7px; flex-wrap: wrap; }
+.cmp-chip { display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px; border: 1.5px solid var(--line-2); border-radius: 999px; background: var(--card); color: var(--ink-2); font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; transition: border-color .15s, color .15s, background .15s, transform .12s; }
+.cmp-chip:hover:not(.disabled):not(.on) { transform: translateY(-1px); border-color: var(--faint); }
+.cmp-chip.disabled { opacity: .4; cursor: not-allowed; }
+.cmp-chip-tick { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 5px; border: 1.5px solid var(--line-2); background: #fff; font-size: 10px; font-weight: 900; color: #fff; flex: none; }
+.cmp-chip-tick:empty { display: none; }
+.cmp-c-demo.on { border-color: var(--bleu); background: var(--bleu-soft); color: var(--bleu); }
+.cmp-c-demo.on .cmp-chip-tick { background: var(--bleu); border-color: var(--bleu); }
+.cmp-c-fin.on { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 16%, var(--card)); color: #6b5200; }
+.cmp-c-fin.on .cmp-chip-tick { background: var(--gold); border-color: var(--gold); }
+.cmp-c-geo.on { border-color: var(--rouge); background: var(--rouge-soft); color: var(--rouge); }
+.cmp-c-geo.on .cmp-chip-tick { background: var(--rouge); border-color: var(--rouge); }
+/* partial master toggle (some but not all of an axis's indicators enabled) */
+.cmp-toggle.partial .cmp-tick { opacity: .92; }
+
 @media (max-width: 560px) {
   /* segmented scope row scrolls horizontally instead of wrapping tall */
   .cmp-seg-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
