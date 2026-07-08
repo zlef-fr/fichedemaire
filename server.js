@@ -4,6 +4,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const data = require("./lib/data");
+const similar = require("./lib/similar");
 const og = require("./lib/og");
 const tracker = require("./lib/tracker");
 const seo = require("./lib/seo");
@@ -84,6 +85,15 @@ const server = http.createServer((req, res) => {
       const q = u.searchParams.get("q") || "";
       return json(res, { results: data.search(q, 40) }, 200, "public, max-age=60");
     }
+    if (p === "/api/similar") {
+      const insee = u.searchParams.get("insee") || "";
+      const ax = (u.searchParams.get("axes") || "demo,fin,geo").split(",");
+      const limit = parseInt(u.searchParams.get("limit"), 10) || 6;
+      const out = similar.similar(insee, {
+        demo: ax.includes("demo"), fin: ax.includes("fin"), geo: ax.includes("geo"), limit,
+      });
+      return out ? json(res, out, 200, "public, max-age=1800") : json(res, { error: "not found" }, 404, "no-cache");
+    }
     if (p.startsWith("/api/fiche/")) {
       const key = decodeURIComponent(p.slice("/api/fiche/".length));
       const f = data.fiche(key);
@@ -163,4 +173,5 @@ const server = http.createServer((req, res) => {
 });
 
 data.load();
+similar.load();
 server.listen(PORT, () => console.log(`FicheDeMaire on :${PORT} — ${data.store.maires.length} maires`));

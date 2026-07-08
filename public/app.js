@@ -290,6 +290,7 @@ STD.hideTip = hideTip;
 const routes = [
   { re: /^\/$/, view: "home" },
   { re: /^\/communes\/?$/, view: "communes" },
+  { re: /^\/comparateur\/?$/, view: "comparateur" },
   { re: /^\/classements\/?$/, view: "classements" },
   { re: /^\/methode\/?$/, view: "methode" },
   { re: /^\/presse\/?$/, view: "presse" },
