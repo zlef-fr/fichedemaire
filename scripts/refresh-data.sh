@@ -46,4 +46,5 @@ python3 pipeline/build_decp.py
 python3 pipeline/build_history.py            # 2020-2026 holder + renewal (all communes)
 python3 pipeline/build_history_wikidata.py   # best-effort 2014-2020 holder + deeper tenure
 [ -f "$RAW/declarations.xml" ] && python3 pipeline/build_hatvp.py || echo "  (skip HATVP — no declarations.xml)"
+node pipeline/build_similar.js             # compact feature index for the comparateur (reads built data/)
 echo "✓ data rebuilt"
