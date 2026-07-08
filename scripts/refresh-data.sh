@@ -27,6 +27,13 @@ curl -sSL "$(python3 scripts/fetch_decp.py marches)" -o "$RAW/decp-marches.csv"
 curl -sSL "$(python3 scripts/fetch_decp.py names)"   -o "$RAW/decp-names.csv"
 curl -sSL "$(python3 scripts/fetch_decp.py siren)"   -o "$RAW/ofgl-siren.csv"
 
+echo "· BANATIC — EPCI à fiscalité propre de rattachement (périmètre, data.gouv)"
+# Bulk perimeter of EPCI à fiscalité propre (CC/CA/CU/métropole): one row per
+# (EPCI, commune membre). Full national coverage. NOTE: the bulk file covers
+# EPCI-FP only — syndicats (SIVU/SIVOM/SM) are not in the open bulk download.
+curl -sSL "https://www.data.gouv.fr/api/1/datasets/r/6e05c448-62cc-4470-aa0f-4f31adea0bc4" \
+  -o "$RAW/banatic-perimetre.csv"
+
 echo "· mandate history — archived RNE snapshot of the 2020-2026 term (Internet Archive)"
 # The live RNE only holds the current term; this Wayback capture is the 2020-2026
 # elus-maires, used to detect renewals + the previous mayor. Stable historical file.
@@ -42,6 +49,7 @@ echo "· build"
 python3 pipeline/build_rne.py
 python3 pipeline/build_finances.py
 python3 pipeline/build_cumul.py
+python3 pipeline/build_epci.py
 python3 pipeline/build_decp.py
 python3 pipeline/build_history.py            # 2020-2026 holder + renewal (all communes)
 python3 pipeline/build_history_wikidata.py   # best-effort 2014-2020 holder + deeper tenure
