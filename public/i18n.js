@@ -22,6 +22,7 @@ window.STD_I18N = {
     "search.none": "Aucune commune trouvée.",
     "search.hab": "hab.",
     "search.mayor": "Maire",
+    "com.detteShort": "Dette/hab.",
 
     "communes.h1": "Toutes les communes",
     "communes.lead": "Cherchez une commune, ou choisissez un département pour explorer.",
@@ -137,6 +138,7 @@ window.STD_I18N = {
     "search.none": "No town found.",
     "search.hab": "pop.",
     "search.mayor": "Mayor",
+    "com.detteShort": "Debt/cap.",
 
     "communes.h1": "All towns",
     "communes.lead": "Search a town, or pick a department to explore.",

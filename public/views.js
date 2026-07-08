@@ -150,8 +150,8 @@
         <span class="cs">${esc(t("search.mayor"))} : ${esc(STD.mayorName(m))}${m.pop != null ? " · " + fmt(m.pop) + " " + t("search.hab") : ""}</span>
       </span>
       <span class="cmetrics">
-        <span class="com-metric">${t("fiche.dettehab")}<b>${f.dettePerHab != null ? fmt(f.dettePerHab) + " €" : "—"}</b></span>
-        <span class="com-metric">${t("fiche.epargne")}<b>${f.tauxEpargne != null ? f.tauxEpargne + " %" : "—"}</b></span>
+        <span class="com-metric com-dette"><span class="cm-l">${t("fiche.dettehab")}</span><span class="cm-l-s">${t("com.detteShort")}</span><b>${f.dettePerHab != null ? fmt(f.dettePerHab) + " €" : "—"}</b></span>
+        <span class="com-metric com-ep"><span class="cm-l">${t("fiche.epargne")}</span><b>${f.tauxEpargne != null ? f.tauxEpargne + " %" : "—"}</b></span>
       </span>
     </a>`;
   }
@@ -193,7 +193,7 @@
       chartsHtml = `<div class="panel"><h2>${esc(t("fiche.trendTitle"))}</h2><div class="psub">${esc(t("fiche.trendSub", { from: yFrom, to: yTo }))}</div>
         ${s.dette ? block(t("chart.dette"), "", STD.lineChart(s.dette, "#c9302c")) : ""}
         ${s.eb ? block(t("chart.epargne"), "", STD.barChart(s.eb, "#18753c")) : ""}
-        ${s.rf && s.df ? block(t("chart.fonct"), `<span style="color:#000091">■</span> ${t("legend.rf")}  <span style="color:#9a9aa6">┄</span> ${t("legend.df")}`, STD.dualLine(s.rf, s.df, "#000091", "#8a8a94")) : ""}
+        ${s.rf && s.df ? block(t("chart.fonct"), `<span class="lg"><i style="background:#000091"></i>${t("legend.rf")}</span><span class="lg"><i style="background:repeating-linear-gradient(90deg,#8a8a94 0 4px,transparent 4px 7px)"></i>${t("legend.df")}</span>`, STD.dualLine(s.rf, s.df, "#000091", "#8a8a94")) : ""}
         ${s.equip ? block(t("chart.equip"), "", STD.lineChart(s.equip, "#b8860b")) : ""}
       </div>`;
     }
@@ -299,7 +299,7 @@
               <div class="mayor-meta"><div class="mm-role">${esc(t("fiche.mayorRole"))}</div><div class="mm-name">${esc(STD.mayorName(f))}</div></div>
             </div>
             <div class="fiche-badges">
-              ${f.cspLabel ? `<span class="chip">${esc(f.cspLabel)}</span>` : ""}
+              ${f.cspLabel ? `<span class="chip chip-job" title="${esc(f.cspLabel)}">${esc(f.cspLabel)}</span>` : ""}
               ${f.age != null ? `<span class="chip">${f.age} ${t("cl.ans")}</span>` : ""}
               ${f.cumul && f.cumul.length ? `<span class="chip gold">＋ ${f.cumul.length} ${esc(t("fiche.cumul").toLowerCase())}</span>` : ""}
             </div>

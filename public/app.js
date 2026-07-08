@@ -86,63 +86,170 @@ STD.epargneClass = (pct) => {
   return { cls: "bad", tag: STD.t("tag.tendu") };
 };
 
-// ── dependency-free SVG charts ─────────────────────────────────────────────
-// Single-series line/area chart over {y, h} points.
-STD.lineChart = (points, color = "#000091") => {
-  const W = 640, H = 190, pl = 44, pr = 14, pt = 14, pb = 26;
+// ── dependency-free SVG charts (with interactive tooltips) ─────────────────
+// Chart geometry (viewBox units). SVG scales to container width, aspect kept.
+const CW = 640, CH = 190, CPL = 44, CPR = 14, CPT = 14, CPB = 26;
+// Serialize tooltip payload into an HTML attribute (STD.esc turns " → &quot;).
+const tipAttr = (o) => STD.esc(JSON.stringify(o));
+
+// Single-series line/area chart over {y, h} points. opts: { label, fmt }.
+STD.lineChart = (points, color = "#000091", opts = {}) => {
   const pts = points.filter((p) => p.h != null);
   if (pts.length < 2) return `<div class="muted" style="font-size:13px">—</div>`;
+  const fmtV = opts.fmt || STD.euro;
   const xs = pts.map((p) => p.y), ys = pts.map((p) => p.h);
   const xmin = Math.min(...xs), xmax = Math.max(...xs);
   let ymin = Math.min(...ys, 0), ymax = Math.max(...ys);
   if (ymax === ymin) ymax = ymin + 1;
-  const X = (y) => pl + ((y - xmin) / (xmax - xmin || 1)) * (W - pl - pr);
-  const Y = (v) => pt + (1 - (v - ymin) / (ymax - ymin)) * (H - pt - pb);
+  const X = (y) => CPL + ((y - xmin) / (xmax - xmin || 1)) * (CW - CPL - CPR);
+  const Y = (v) => CPT + (1 - (v - ymin) / (ymax - ymin)) * (CH - CPT - CPB);
   const line = pts.map((p, i) => `${i ? "L" : "M"}${X(p.y).toFixed(1)},${Y(p.h).toFixed(1)}`).join(" ");
   const area = `M${X(pts[0].y).toFixed(1)},${Y(ymin).toFixed(1)} ` + pts.map((p) => `L${X(p.y).toFixed(1)},${Y(p.h).toFixed(1)}`).join(" ") + ` L${X(pts[pts.length - 1].y).toFixed(1)},${Y(ymin).toFixed(1)} Z`;
-  const gy = [ymin, (ymin + ymax) / 2, ymax];
-  const grid = gy.map((v) => `<line class="grid-line" x1="${pl}" y1="${Y(v).toFixed(1)}" x2="${W - pr}" y2="${Y(v).toFixed(1)}"/><text class="axis-label" x="${pl - 6}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end">${Math.round(v).toLocaleString(STD.loc())}</text>`).join("");
-  const xlab = pts.map((p) => `<text class="axis-label" x="${X(p.y).toFixed(1)}" y="${H - 8}" text-anchor="middle">${String(p.y).slice(2)}</text>`).join("");
-  const dots = pts.map((p) => `<circle class="dot" cx="${X(p.y).toFixed(1)}" cy="${Y(p.h).toFixed(1)}" r="3.2" fill="${color}"/>`).join("");
-  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img"><defs><linearGradient id="g${color.replace('#','')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>${grid}<path class="area" d="${area}" fill="url(#g${color.replace('#','')})"/><path class="linepath" d="${line}" stroke="${color}"/>${dots}${xlab}</svg></div>`;
+  const grid = gridSvg(ymin, ymax, Y);
+  const xlab = pts.map((p) => `<text class="axis-label" x="${X(p.y).toFixed(1)}" y="${CH - 8}" text-anchor="middle">${String(p.y).slice(2)}</text>`).join("");
+  const dots = pts.map((p, i) => `<circle class="dot" data-i="${i}" cx="${X(p.y).toFixed(1)}" cy="${Y(p.h).toFixed(1)}" r="3.4" fill="${color}"/>`).join("");
+  const band = (CW - CPL - CPR) / pts.length;
+  const hits = pts.map((p, i) => {
+    const tip = tipAttr({ y: p.y, rows: [{ c: color, l: opts.label || "", v: fmtV(p.h) }] });
+    return `<rect class="tip-hit" data-i="${i}" data-tip="${tip}" x="${(X(p.y) - band / 2).toFixed(1)}" y="${CPT}" width="${band.toFixed(1)}" height="${(CH - CPT - CPB).toFixed(1)}"/>`;
+  }).join("");
+  const gid = "g" + color.replace("#", "");
+  return `<div class="chart"><svg viewBox="0 0 ${CW} ${CH}" role="img"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>${grid}<path class="area" d="${area}" fill="url(#${gid})"/><path class="linepath" d="${line}" stroke="${color}"/>${dots}${xlab}${hits}</svg></div>`;
 };
 
-// Two-series line chart (e.g. recettes vs dépenses).
-STD.dualLine = (a, b, ca, cb) => {
-  const W = 640, H = 190, pl = 44, pr = 14, pt = 14, pb = 26;
+// Two-series line chart (e.g. recettes vs dépenses). opts: { la, lb }.
+STD.dualLine = (a, b, ca, cb, opts = {}) => {
   const A = a.filter((p) => p.h != null), B = b.filter((p) => p.h != null);
   if (A.length < 2) return `<div class="muted" style="font-size:13px">—</div>`;
+  const la = opts.la || STD.t("legend.rf"), lb = opts.lb || STD.t("legend.df");
+  const bByYear = {}; B.forEach((p) => (bByYear[p.y] = p.h));
   const all = [...A, ...B], xs = all.map((p) => p.y), ys = all.map((p) => p.h);
   const xmin = Math.min(...xs), xmax = Math.max(...xs);
   let ymin = Math.min(...ys, 0), ymax = Math.max(...ys); if (ymax === ymin) ymax = ymin + 1;
-  const X = (y) => pl + ((y - xmin) / (xmax - xmin || 1)) * (W - pl - pr);
-  const Y = (v) => pt + (1 - (v - ymin) / (ymax - ymin)) * (H - pt - pb);
+  const X = (y) => CPL + ((y - xmin) / (xmax - xmin || 1)) * (CW - CPL - CPR);
+  const Y = (v) => CPT + (1 - (v - ymin) / (ymax - ymin)) * (CH - CPT - CPB);
   const path = (arr) => arr.map((p, i) => `${i ? "L" : "M"}${X(p.y).toFixed(1)},${Y(p.h).toFixed(1)}`).join(" ");
-  const gy = [ymin, (ymin + ymax) / 2, ymax];
-  const grid = gy.map((v) => `<line class="grid-line" x1="${pl}" y1="${Y(v).toFixed(1)}" x2="${W - pr}" y2="${Y(v).toFixed(1)}"/><text class="axis-label" x="${pl - 6}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end">${Math.round(v).toLocaleString(STD.loc())}</text>`).join("");
-  const xlab = A.map((p) => `<text class="axis-label" x="${X(p.y).toFixed(1)}" y="${H - 8}" text-anchor="middle">${String(p.y).slice(2)}</text>`).join("");
-  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img">${grid}<path class="linepath" d="${path(A)}" stroke="${ca}"/><path class="linepath" d="${path(B)}" stroke="${cb}" stroke-dasharray="1 5"/>${xlab}</svg></div>`;
+  const grid = gridSvg(ymin, ymax, Y);
+  const xlab = A.map((p) => `<text class="axis-label" x="${X(p.y).toFixed(1)}" y="${CH - 8}" text-anchor="middle">${String(p.y).slice(2)}</text>`).join("");
+  const dotsB = B.map((p) => `<circle class="dot dot-b" cx="${X(p.y).toFixed(1)}" cy="${Y(p.h).toFixed(1)}" r="3" fill="${cb}"/>`).join("");
+  const dotsA = A.map((p, i) => `<circle class="dot" data-i="${i}" cx="${X(p.y).toFixed(1)}" cy="${Y(p.h).toFixed(1)}" r="3.4" fill="${ca}"/>`).join("");
+  const band = (CW - CPL - CPR) / A.length;
+  const hits = A.map((p, i) => {
+    const rows = [{ c: ca, l: la, v: STD.euro(p.h) }];
+    if (bByYear[p.y] != null) rows.push({ c: cb, l: lb, v: STD.euro(bByYear[p.y]) });
+    const tip = tipAttr({ y: p.y, rows });
+    return `<rect class="tip-hit" data-i="${i}" data-tip="${tip}" x="${(X(p.y) - band / 2).toFixed(1)}" y="${CPT}" width="${band.toFixed(1)}" height="${(CH - CPT - CPB).toFixed(1)}"/>`;
+  }).join("");
+  return `<div class="chart"><svg viewBox="0 0 ${CW} ${CH}" role="img">${grid}<path class="linepath" d="${path(A)}" stroke="${ca}"/><path class="linepath" d="${path(B)}" stroke="${cb}" stroke-dasharray="1 5"/>${dotsB}${dotsA}${xlab}${hits}</svg></div>`;
 };
 
-// Bar chart over {y, h}.
-STD.barChart = (points, color = "#18753c") => {
-  const W = 640, H = 190, pl = 44, pr = 14, pt = 14, pb = 26;
+// Bar chart over {y, h}. opts: { label, fmt }.
+STD.barChart = (points, color = "#18753c", opts = {}) => {
   const pts = points.filter((p) => p.h != null);
   if (!pts.length) return `<div class="muted" style="font-size:13px">—</div>`;
+  const fmtV = opts.fmt || STD.euro;
   const ys = pts.map((p) => p.h);
   let ymin = Math.min(...ys, 0), ymax = Math.max(...ys, 0); if (ymax === ymin) ymax = ymin + 1;
-  const bw = (W - pl - pr) / pts.length * 0.62;
-  const X = (i) => pl + (i + 0.5) / pts.length * (W - pl - pr);
-  const Y = (v) => pt + (1 - (v - ymin) / (ymax - ymin)) * (H - pt - pb);
-  const gy = [ymin, (ymin + ymax) / 2, ymax];
-  const grid = gy.map((v) => `<line class="grid-line" x1="${pl}" y1="${Y(v).toFixed(1)}" x2="${W - pr}" y2="${Y(v).toFixed(1)}"/><text class="axis-label" x="${pl - 6}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end">${Math.round(v).toLocaleString(STD.loc())}</text>`).join("");
+  const bw = (CW - CPL - CPR) / pts.length * 0.62;
+  const X = (i) => CPL + (i + 0.5) / pts.length * (CW - CPL - CPR);
+  const Y = (v) => CPT + (1 - (v - ymin) / (ymax - ymin)) * (CH - CPT - CPB);
+  const grid = gridSvg(ymin, ymax, Y);
   const bars = pts.map((p, i) => {
     const y0 = Y(Math.max(0, p.h)), y1 = Y(Math.min(0, p.h));
-    return `<rect class="barcol" x="${(X(i) - bw / 2).toFixed(1)}" y="${y0.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1, y1 - y0).toFixed(1)}" rx="3" fill="${p.h < 0 ? '#c9302c' : color}"/>`;
+    return `<rect class="barcol" data-i="${i}" x="${(X(i) - bw / 2).toFixed(1)}" y="${y0.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1, y1 - y0).toFixed(1)}" rx="3" fill="${p.h < 0 ? '#c9302c' : color}"/>`;
   }).join("");
-  const xlab = pts.map((p, i) => `<text class="axis-label" x="${X(i).toFixed(1)}" y="${H - 8}" text-anchor="middle">${String(p.y).slice(2)}</text>`).join("");
-  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img">${grid}${bars}${xlab}</svg></div>`;
+  const xlab = pts.map((p, i) => `<text class="axis-label" x="${X(i).toFixed(1)}" y="${CH - 8}" text-anchor="middle">${String(p.y).slice(2)}</text>`).join("");
+  const band = (CW - CPL - CPR) / pts.length;
+  const hits = pts.map((p, i) => {
+    const tip = tipAttr({ y: p.y, rows: [{ c: p.h < 0 ? "#c9302c" : color, l: opts.label || "", v: fmtV(p.h) }] });
+    return `<rect class="tip-hit" data-i="${i}" data-tip="${tip}" x="${(X(i) - band / 2).toFixed(1)}" y="${CPT}" width="${band.toFixed(1)}" height="${(CH - CPT - CPB).toFixed(1)}"/>`;
+  }).join("");
+  return `<div class="chart"><svg viewBox="0 0 ${CW} ${CH}" role="img">${grid}${bars}${xlab}${hits}</svg></div>`;
 };
+
+// shared Y grid + labels
+function gridSvg(ymin, ymax, Y) {
+  return [ymin, (ymin + ymax) / 2, ymax].map((v) =>
+    `<line class="grid-line" x1="${CPL}" y1="${Y(v).toFixed(1)}" x2="${CW - CPR}" y2="${Y(v).toFixed(1)}"/><text class="axis-label" x="${CPL - 6}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end">${Math.round(v).toLocaleString(STD.loc())}</text>`).join("");
+}
+
+// ── shared floating chart tooltip (hover on desktop, tap on touch) ──────────
+function ensureTip() {
+  if (STD._tip && document.body.contains(STD._tip)) return STD._tip;
+  const el = document.createElement("div");
+  el.id = "chart-tip";
+  el.setAttribute("role", "tooltip");
+  document.body.appendChild(el);
+  return (STD._tip = el);
+}
+function hideTip() {
+  if (STD._tip) STD._tip.classList.remove("show");
+  document.querySelectorAll(".tip-hit.on").forEach((h) => h.classList.remove("on"));
+  document.querySelectorAll(".dot.tip-active").forEach((d) => d.classList.remove("tip-active"));
+  STD._tipActive = null;
+}
+function markerFor(hit) {
+  const svg = hit.ownerSVGElement;
+  if (!svg) return null;
+  return svg.querySelector(`.dot[data-i="${hit.dataset.i}"]`) || svg.querySelector(`.barcol[data-i="${hit.dataset.i}"]`) || hit;
+}
+// place the tooltip above (or below, when clipped) the point, clamped to the viewport
+function placeTip(el, mr) {
+  const tr = el.getBoundingClientRect();
+  let left = mr.left + mr.width / 2 - tr.width / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - tr.width - 8));
+  let top = mr.top - tr.height - 10;
+  if (top < 8) top = mr.bottom + 10;
+  el.style.left = Math.round(left) + "px";
+  el.style.top = Math.round(top) + "px";
+}
+function showTipFor(hit) {
+  let data;
+  try { data = JSON.parse(hit.dataset.tip); } catch { return; }
+  const marker = markerFor(hit);
+  if (!marker) return;
+  const el = ensureTip();
+  el.innerHTML = `<div class="tip-y">${STD.esc(String(data.y))}</div>` + data.rows.map((r) =>
+    `<div class="tip-row"><span class="sw" style="background:${STD.esc(r.c)}"></span>${r.l ? `<span class="lb">${STD.esc(r.l)}</span>` : ""}<span class="vl">${STD.esc(r.v)}</span></div>`).join("");
+  el.style.left = "-9999px"; el.style.top = "-9999px"; // measure off-screen first
+  placeTip(el, marker.getBoundingClientRect());
+  el.classList.add("show");
+  hit.classList.add("on");
+  if (marker.classList.contains("dot")) marker.classList.add("tip-active");
+  STD._tipActive = hit;
+}
+// keep the tooltip glued to its point while the page scrolls; drop it once off-screen
+function repositionTip() {
+  const hit = STD._tipActive;
+  if (!hit || !STD._tip || !STD._tip.classList.contains("show")) return;
+  const marker = markerFor(hit);
+  if (!marker) { hideTip(); return; }
+  const mr = marker.getBoundingClientRect();
+  if (mr.bottom < 36 || mr.top > window.innerHeight - 8) { hideTip(); return; }
+  placeTip(STD._tip, mr);
+}
+document.addEventListener("pointerover", (e) => {
+  const hit = e.target.closest && e.target.closest(".tip-hit");
+  if (hit && e.pointerType !== "touch") showTipFor(hit);
+});
+document.addEventListener("pointerout", (e) => {
+  const hit = e.target.closest && e.target.closest(".tip-hit");
+  if (!hit || e.pointerType === "touch") return;
+  const to = e.relatedTarget;
+  if (to && to.closest && to.closest(".tip-hit")) return; // sliding to a sibling band
+  hideTip();
+});
+document.addEventListener("pointerdown", (e) => {
+  const hit = e.target.closest && e.target.closest(".tip-hit");
+  if (hit) {
+    if (e.pointerType === "touch" || e.pointerType === "pen") { STD._tipActive === hit ? hideTip() : showTipFor(hit); }
+    return;
+  }
+  if (!(e.target.closest && e.target.closest("#chart-tip"))) hideTip();
+});
+window.addEventListener("scroll", repositionTip, { passive: true });
+window.addEventListener("resize", hideTip);
+STD.hideTip = hideTip;
 
 // ── router ──────────────────────────────────────────────────────────────
 const routes = [
@@ -172,6 +279,7 @@ function highlightNav(view) {
   document.querySelector("nav.main")?.classList.remove("open");
 }
 async function render() {
+  if (STD.hideTip) STD.hideTip();
   const path = STD.stripLocale(location.pathname);
   const root = document.getElementById("app");
   const match = routes.find((r) => r.re.test(path)) || routes[0];
