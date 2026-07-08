@@ -27,6 +27,12 @@ curl -sSL "$(python3 scripts/fetch_decp.py marches)" -o "$RAW/decp-marches.csv"
 curl -sSL "$(python3 scripts/fetch_decp.py names)"   -o "$RAW/decp-names.csv"
 curl -sSL "$(python3 scripts/fetch_decp.py siren)"   -o "$RAW/ofgl-siren.csv"
 
+echo "· mandate history — archived RNE snapshot of the 2020-2026 term (Internet Archive)"
+# The live RNE only holds the current term; this Wayback capture is the 2020-2026
+# elus-maires, used to detect renewals + the previous mayor. Stable historical file.
+curl -sSL "http://web.archive.org/web/20250628120000id_/https://www.data.gouv.fr/fr/datasets/r/2876a346-d50c-4911-934e-19ee07b0e503" \
+  -o "$RAW/elus-maires-2020-2026.csv.gz"
+
 if [ "${WITH_HATVP:-0}" = "1" ]; then
   echo "· HATVP déclarations (HTTP/1.1)"
   curl -sSL --http1.1 "https://www.hatvp.fr/livraison/merge/declarations.xml" -o "$RAW/declarations.xml"
@@ -37,5 +43,7 @@ python3 pipeline/build_rne.py
 python3 pipeline/build_finances.py
 python3 pipeline/build_cumul.py
 python3 pipeline/build_decp.py
+python3 pipeline/build_history.py            # 2020-2026 holder + renewal (all communes)
+python3 pipeline/build_history_wikidata.py   # best-effort 2014-2020 holder + deeper tenure
 [ -f "$RAW/declarations.xml" ] && python3 pipeline/build_hatvp.py || echo "  (skip HATVP — no declarations.xml)"
 echo "✓ data rebuilt"

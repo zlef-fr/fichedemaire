@@ -163,6 +163,12 @@
     const fin = f.finances;
     const r = fin && fin.ratios;
 
+    // mandate history (renewal + previous holders) — see lib/history.json
+    const H = f.hist || {};
+    const renewed = !!H.renewed;
+    const sinceISO = H.since || f.foncStart;                 // best "maire depuis"
+    const veteran = !!(sinceISO && sinceISO.slice(0, 4) < "2026");
+
     // ratio badges
     let ratiosHtml = "";
     if (r) {
@@ -190,7 +196,16 @@
       const yFrom = years.length ? years[0].y : "", yTo = years.length ? years[years.length - 1].y : "";
       // `sub` is app-controlled static HTML (a small legend) — safe to inline.
       const block = (title, sub, svg) => `<div class="chart-block"><div class="chart-title"><span class="ct">${esc(title)}</span><span class="cv">${sub || ""}</span></div>${svg}</div>`;
+      // "Qui gouvernait ?" — the holder of each municipal term behind these accounts
+      const msRow = (per, name, meta, cls = "") => `<div class="ms-row ${cls}">
+        <span class="ms-per">${esc(per)}</span>
+        <span class="ms-body"><span class="ms-who${name ? "" : " none"}">${esc(name || t("mnd.unknown"))}</span>${meta ? `<span class="ms-meta">${esc(meta)}</span>` : ""}</span></div>`;
+      const stripHtml = `<div class="mnd-strip"><div class="ms-h">${esc(t("mnd.stripTitle"))}</div>
+        ${msRow("2014–2020", H.t2014 && H.t2014.name, H.t2014 ? t("mnd.viaWikidata") : "")}
+        ${msRow("2020–2026", H.t2020 && H.t2020.name, renewed ? t("mnd.renewed2026") : "")}
+        ${msRow(t("mnd.current"), STD.mayorName(f), t("fiche.mandat").toLowerCase() + " " + dateFmt(f.foncStart), "cur")}</div>`;
       chartsHtml = `<div class="panel"><h2>${esc(t("fiche.trendTitle"))}</h2><div class="psub">${esc(t("fiche.trendSub", { from: yFrom, to: yTo }))}</div>
+        ${stripHtml}
         <div class="mnd-key"><span class="mk-sw"></span><span>${esc(t("mnd.legend"))}</span></div>
         ${s.dette ? block(t("chart.dette"), "", STD.lineChart(s.dette, "#c9302c")) : ""}
         ${s.eb ? block(t("chart.epargne"), "", STD.barChart(s.eb, "#18753c")) : ""}
@@ -285,6 +300,7 @@
       <div class="kv"><span class="k">${esc(t("fiche.civ"))}</span><span class="v">${esc(STD.civ(f))} ${esc(STD.mayorName(f))}</span></div>
       ${f.age != null ? `<div class="kv"><span class="k">${esc(t("fiche.age"))}</span><span class="v">${f.age} ${t("cl.ans")}</span></div>` : ""}
       ${f.cspLabel ? `<div class="kv"><span class="k">${esc(t("fiche.job"))}</span><span class="v">${esc(f.cspLabel)}</span></div>` : ""}
+      ${veteran ? `<div class="kv"><span class="k">${esc(t("fiche.mayorSince"))}</span><span class="v">${esc(dateFmt(sinceISO))}</span></div>` : ""}
       ${f.foncStart ? `<div class="kv"><span class="k">${esc(t("fiche.mandat"))}</span><span class="v">${esc(dateFmt(f.foncStart))}</span></div>` : ""}</div>`;
 
     root.innerHTML = `<div class="wrap">
@@ -303,6 +319,7 @@
             <div class="fiche-badges">
               ${f.cspLabel ? `<span class="chip chip-job" title="${esc(f.cspLabel)}">${esc(f.cspLabel)}</span>` : ""}
               ${f.age != null ? `<span class="chip">${f.age} ${t("cl.ans")}</span>` : ""}
+              ${veteran ? `<span class="chip blue">${esc(t("mnd.mayorSinceChip", { year: sinceISO.slice(0, 4) }))}</span>` : ""}
               ${f.cumul && f.cumul.length ? `<span class="chip gold">＋ ${f.cumul.length} ${esc(t("fiche.cumul").toLowerCase())}</span>` : ""}
             </div>
           </div>
