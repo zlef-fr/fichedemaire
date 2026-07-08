@@ -286,3 +286,15 @@ footer.foot .fi { display: flex; justify-content: space-between; gap: 16px; flex
   .com-row .cmetrics { display: none; }
   .ratios { grid-template-columns: 1fr 1fr; }
 }
+
+/* DECP (v2) — "Où va l'argent ?" money-trail panel */
+.decp-sec { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 22px 0 8px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-2); }
+.decp-sec span { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 12px; color: var(--muted); text-align: right; }
+.decp-suppliers .rank-row .val { color: var(--bleu); }
+.decp-marches { display: flex; flex-direction: column; }
+.decp-marche { padding: 11px 2px; }
+.decp-marche + .decp-marche { border-top: 1px solid var(--line); }
+.decp-marche .dm-top { display: flex; gap: 14px; align-items: baseline; justify-content: space-between; }
+.decp-marche .dm-obj { font-weight: 650; font-size: 14px; line-height: 1.35; }
+.decp-marche .dm-amt { flex: none; font-weight: 800; font-size: 14.5px; color: var(--bleu); white-space: nowrap; }
+.decp-marche .dm-sub { font-size: 12.5px; color: var(--muted); margin-top: 3px; }

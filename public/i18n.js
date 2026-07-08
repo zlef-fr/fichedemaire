@@ -100,6 +100,20 @@ window.STD_I18N = {
     "footer.views": "{n} vue{s}",
     "err.title": "Oups",
     "err.load": "Impossible de charger cette page.",
+
+    // --- DECP (v2) ---
+    "decp.title": "Où va l'argent ?",
+    "decp.sub": "Les marchés publics attribués par la commune — données essentielles de la commande publique (DECP).",
+    "decp.total": "Total attribué",
+    "decp.marches": "Marchés publics",
+    "decp.period": "de {from} à {to}",
+    "decp.suppliers": "Principaux fournisseurs",
+    "decp.suppliersSub": "par montant cumulé",
+    "decp.biggest": "Plus gros marchés",
+    "decp.biggestSub": "montants les plus élevés déclarés",
+    "decp.contracts": "{n} marché{s}",
+    "decp.note": "Ces marchés couvrent plusieurs années et sont, pour l'essentiel, antérieurs au conseil élu en mars 2026 : ils décrivent la commande publique de la commune, pas le bilan du nouveau maire. Les montants sont déclaratifs et incluent des accords-cadres (plafonds pluriannuels) — à lire comme des ordres de grandeur.",
+    "decp.src": "Commande publique (DECP)",
   },
   en: {
     "nav.communes": "Towns",
@@ -201,5 +215,19 @@ window.STD_I18N = {
     "footer.views": "{n} view{s}",
     "err.title": "Oops",
     "err.load": "Could not load this page.",
+
+    // --- DECP (v2) ---
+    "decp.title": "Where the money goes",
+    "decp.sub": "The public contracts the town awarded — from France's essential public-procurement data (DECP).",
+    "decp.total": "Total awarded",
+    "decp.marches": "Public contracts",
+    "decp.period": "from {from} to {to}",
+    "decp.suppliers": "Top suppliers",
+    "decp.suppliersSub": "by total contract value",
+    "decp.biggest": "Biggest contracts",
+    "decp.biggestSub": "highest declared amounts",
+    "decp.contracts": "{n} contract{s}",
+    "decp.note": "These contracts span several years and mostly predate the council elected in March 2026: they describe the town's procurement, not the new mayor's record. Amounts are self-declared and include framework agreements (multi-year ceilings) — read them as orders of magnitude.",
+    "decp.src": "Public procurement (DECP)",
   },
 };

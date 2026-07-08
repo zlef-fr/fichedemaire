@@ -198,6 +198,39 @@
       </div>`;
     }
 
+    // ── DECP (v2) — "Où va l'argent ?" money-trail panel (self-contained) ──
+    let decpHtml = "";
+    if (f.decp && f.decp.count) {
+      const dp = f.decp;
+      const plur = (n) => (STD.lang === "fr" ? (n > 1 ? "s" : "") : (n === 1 ? "" : "s"));
+      const period = dp.years ? " · " + t("decp.period", { from: dp.years[0], to: dp.years[1] }) : "";
+      const supRows = (dp.suppliers || []).map((s, i) => `
+        <div class="rank-row">
+          <span class="pos">${i + 1}</span>
+          <span class="who"><span class="nm">${esc(s.name)}</span>
+            <span class="sub">${esc(t("decp.contracts", { n: fmt(s.count), s: plur(s.count) }))}</span></span>
+          <span class="val">${esc(STD.euro(s.total))}</span>
+        </div>`).join("");
+      const marRows = (dp.marches || []).map((mo) => `
+        <div class="decp-marche">
+          <div class="dm-top"><span class="dm-obj">${esc(mo.objet)}</span><span class="dm-amt">${esc(STD.euro(mo.montant))}</span></div>
+          <div class="dm-sub">${esc(mo.titulaire)}${mo.date ? " · " + esc(dateFmt(mo.date)) : ""}</div>
+        </div>`).join("");
+      decpHtml = `<div class="panel decp-panel">
+        <h2>${esc(t("decp.title"))}</h2>
+        <div class="psub">${esc(t("decp.sub"))}</div>
+        <div class="metric-grid">
+          <div class="metric"><div class="ml">${esc(t("decp.total"))}${esc(period)}</div><div class="mv">${fmt(dp.total)}<small> €</small></div></div>
+          <div class="metric"><div class="ml">${esc(t("decp.marches"))}</div><div class="mv">${fmt(dp.count)}</div></div>
+        </div>
+        ${supRows ? `<div class="decp-sec">${esc(t("decp.suppliers"))} <span>${esc(t("decp.suppliersSub"))}</span></div>
+        <div class="decp-suppliers">${supRows}</div>` : ""}
+        ${marRows ? `<div class="decp-sec">${esc(t("decp.biggest"))} <span>${esc(t("decp.biggestSub"))}</span></div>
+        <div class="decp-marches">${marRows}</div>` : ""}
+        <div class="note"><span class="ni">ⓘ</span><span>${esc(t("decp.note"))}</span></div>
+      </div>`;
+    }
+
     // finances panel: title + per-hab metric grid
     let metricHtml = "";
     if (r) {
@@ -281,6 +314,7 @@
         <div>
           ${metricHtml}
           ${chartsHtml}
+          ${decpHtml}
         </div>
         <div>
           ${idHtml}
@@ -291,6 +325,7 @@
             <div class="link-row">
               <a href="https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/" target="_blank" rel="noopener">▪ ${esc(t("src.rne"))}</a>
               <a href="https://data.ofgl.fr/explore/dataset/ofgl-base-communes/" target="_blank" rel="noopener">▪ ${esc(t("src.ofgl"))}</a>
+              ${f.decp && f.decp.count ? `<a href="https://data.economie.gouv.fr/explore/dataset/decp-2022-marches-valides/" target="_blank" rel="noopener">▪ ${esc(t("decp.src"))}</a>` : ""}
             </div></div>
         </div>
       </div>

@@ -17,10 +17,13 @@ zone is added to Cloudflare).
 | **RNE** — Répertoire national des élus (data.gouv.fr) | Identité de chaque maire + cumul des mandats |
 | **OFGL** — Observatoire des finances et de la gestion publique locales | Comptes des communes 2017-2024 (budget principal) |
 | **HATVP** | Déclarations d'intérêts des maires (communes > 20 000 hab.) |
+| **DECP** — Données essentielles de la commande publique (data.economie.gouv.fr) | **v2 « Où va l'argent ? »** : marchés publics attribués par la commune — total, fournisseurs, plus gros marchés |
 
 Les élections municipales de **mars 2026** ayant renouvelé les conseils, les
 comptes affichés (dernier exercice publié) décrivent la commune **héritée**, pas
-le mandat en cours — c'est indiqué sur chaque fiche et sur `/methode`.
+le mandat en cours — c'est indiqué sur chaque fiche et sur `/methode`. De même,
+les **marchés publics (DECP)** de la section « Où va l'argent ? » s'étalent sur
+plusieurs années et sont, pour l'essentiel, antérieurs au maire actuel.
 
 ## Architecture
 
@@ -32,11 +35,18 @@ lazily per fiche. Vanilla SPA (`public/app.js` core + `views.js` renderers +
 sitemaps (34k URLs), dynamic per-commune OG cards. FR default + EN.
 
 ```
-pipeline/  build_rne.py · build_finances.py · build_cumul.py · build_hatvp.py
+pipeline/  build_rne.py · build_finances.py · build_cumul.py · build_hatvp.py · build_decp.py
 lib/       data.js (index + lazy shards) · seo.js · ssr.js · og.js · tracker.js · locales.js · faq.js
 public/    SPA (app/views/i18n/styles) + PWA
-data/      maires.json · stats.json · cumul.json · hatvp.json · finances/<dep>.json  (committed)
+data/      maires.json · stats.json · cumul.json · hatvp.json · finances/<dep>.json · decp/<dep>.json  (committed)
 ```
+
+The **DECP** money-trail (`data/decp/<dep>.json`) is built the same way as the
+finances shards — one file per department, keyed by INSEE, lazy-loaded per fiche —
+and joined to communes by SIREN (DECP `acheteur.id` SIRET → SIREN → OFGL commune
+SIREN). Suppliers are grouped by company (SIREN) and enriched with a raison
+sociale from `decp_augmente`; declarative montants ≤ 0 or > 50 M€ are dropped as
+ceilings / sentinels.
 
 ## Build & run
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Re-download the open-data sources and rebuild every data/*.json.
 # The built JSON under data/ is what ships in the image; raw/ is gitignored.
-#   bash scripts/refresh-data.sh            # RNE + OFGL + cumul + finances
+#   bash scripts/refresh-data.sh            # RNE + OFGL + cumul + finances + DECP
 #   WITH_HATVP=1 bash scripts/refresh-data.sh   # also refresh HATVP (84MB XML)
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -22,6 +22,11 @@ echo "· OFGL commune finances (bulk export, ~700MB uncompressed)"
 URL=$(python3 scripts/fetch_ofgl.py)
 curl -sSL "$URL" -o "$RAW/ofgl-communes.csv"
 
+echo "· DECP v2 — commande publique (marchés + name map + commune SIREN directory)"
+curl -sSL "$(python3 scripts/fetch_decp.py marches)" -o "$RAW/decp-marches.csv"
+curl -sSL "$(python3 scripts/fetch_decp.py names)"   -o "$RAW/decp-names.csv"
+curl -sSL "$(python3 scripts/fetch_decp.py siren)"   -o "$RAW/ofgl-siren.csv"
+
 if [ "${WITH_HATVP:-0}" = "1" ]; then
   echo "· HATVP déclarations (HTTP/1.1)"
   curl -sSL --http1.1 "https://www.hatvp.fr/livraison/merge/declarations.xml" -o "$RAW/declarations.xml"
@@ -31,5 +36,6 @@ echo "· build"
 python3 pipeline/build_rne.py
 python3 pipeline/build_finances.py
 python3 pipeline/build_cumul.py
+python3 pipeline/build_decp.py
 [ -f "$RAW/declarations.xml" ] && python3 pipeline/build_hatvp.py || echo "  (skip HATVP — no declarations.xml)"
 echo "✓ data rebuilt"
