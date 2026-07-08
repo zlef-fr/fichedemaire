@@ -1,0 +1,14 @@
+services:
+  fichedemaire:
+    build: .
+    container_name: fichedemaire
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - PORT=10117
+      - VAR_DIR=/app/var
+      # interim canonical host until the fichedemaire.fr apex zone is added to CF;
+      # flip to https://fichedemaire.fr once the zone is live.
+      - SITE_BASE=https://fichedemaire.zlef.fr
+    volumes:
+      - ./var:/app/var

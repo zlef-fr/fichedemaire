@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<!--zlef-seo-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>FicheDeMaire.fr — La fiche vivante de votre commune et de son maire</title>
+<meta name="description" content="Qui est votre maire et dans quel état sont les finances de votre commune ? 34 600 communes, 100 % sourcé (RNE, OFGL, HATVP).">
+<link rel="canonical" href="https://fichedemaire.fr/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FicheDeMaire.fr">
+<meta property="og:title" content="FicheDeMaire.fr — La fiche vivante de votre commune et de son maire">
+<meta property="og:description" content="Qui est votre maire et dans quel état sont les finances de votre commune ? 34 600 communes, 100 % sourcé.">
+<meta property="og:url" content="https://fichedemaire.fr/">
+<meta property="og:image" content="https://fichedemaire.fr/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FicheDeMaire.fr — La fiche vivante de votre commune et de son maire">
+<meta name="twitter:description" content="Qui est votre maire et dans quel état sont les finances de votre commune ? 100 % sourcé.">
+<meta name="twitter:image" content="https://fichedemaire.fr/og.png">
+<meta name="theme-color" content="#000091">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/icon-180.png">
+<link rel="manifest" href="/site.webmanifest">
+<!--/zlef-seo-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;850;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css?v=1">
+</head>
+<body>
+<header class="top"><div class="wrap top-inner">
+  <a class="brand" href="/" data-link>
+    <span class="sash"></span>
+    <span><b>Fiche</b>DeMaire<span class="dot-fr">.fr</span></span>
+  </a>
+  <button class="menu-btn" aria-label="Menu">☰</button>
+  <nav class="main">
+    <a href="/communes" data-link data-view="communes" data-i18n="nav.communes">Communes</a>
+    <a href="/classements" data-link data-view="classements" data-i18n="nav.classements">Classements</a>
+    <a href="/methode" data-link data-view="methode" data-i18n="nav.methode">Méthode</a>
+    <button class="lang-btn" id="langtoggle" aria-label="EN/FR">FR / EN</button>
+  </nav>
+</div></header>
+
+<main id="app"><div class="wrap"><div class="spinner"></div></div></main>
+
+<footer class="foot"><div class="wrap">
+  <div class="fi">
+    <span data-i18n="footer.data">Données : RNE · OFGL · HATVP (licence Ouverte).</span>
+    <span class="views-chip" data-views hidden></span>
+  </div>
+  <div class="foot-credit">
+    <span data-i18n="footer.madeby">Projet indépendant, réalisé avec patriotisme</span>
+    <span class="echarpe" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span><span data-i18n="footer.by">par</span> <a href="https://zlef.fr">zlef.fr</a></span>
+    <span class="foot-sister">·&nbsp; <span data-i18n="footer.sisters">Aussi&nbsp;: </span><a href="https://fichedepute.fr">Députés</a> · <a href="https://senat.fichedepute.fr">Sénateurs</a></span>
+  </div>
+</div></footer>
+
+<script src="/i18n.js?v=1"></script>
+<script src="/app.js?v=1"></script>
+<script src="/views.js?v=1"></script>
+<script>
+  document.querySelector(".menu-btn").addEventListener("click", () => document.querySelector("nav.main").classList.toggle("open"));
+  document.getElementById("langtoggle").addEventListener("click", () => STD.setLang(STD.lang === "fr" ? "en" : "fr"));
+  STD.boot();
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(()=>{});
+</script>
+<script defer src="https://assets.zlef.fr/track.js"></script>
+</body>
+</html>

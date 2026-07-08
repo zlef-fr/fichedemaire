@@ -1,0 +1,9 @@
+{
+  "name": "fichedemaire",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FicheDeMaire.fr — living record of every French commune and its mayor",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "@resvg/resvg-js": "^2.6.2" }
+}
