@@ -7,8 +7,7 @@ services:
     environment:
       - PORT=10117
       - VAR_DIR=/app/var
-      # interim canonical host until the fichedemaire.fr apex zone is added to CF;
-      # flip to https://fichedemaire.fr once the zone is live.
-      - SITE_BASE=https://fichedemaire.zlef.fr
+      # primary brand apex (own CF zone, live 2026-07-08); fichedemaire.zlef.fr 301s here.
+      - SITE_BASE=https://fichedemaire.fr
     volumes:
       - ./var:/app/var
