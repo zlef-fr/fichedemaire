@@ -90,7 +90,7 @@
       <span class="cmp-item-body">
         <span class="cmp-item-n">${esc(r.commune)} <em>(${esc(r.dep)})</em></span>
         <span class="cmp-item-sub">${esc(sub)}</span>
-        <span class="cmp-badges">${cmpBadges(r.groups)}</span>
+        <span class="cmp-badges">${cmpBadges(r.groups)}${r.km != null ? `<span class="cmp-badge cmp-b-km">↦ ${fmt(r.km)} km</span>` : ""}</span>
       </span>
       <span class="cmp-item-go" aria-hidden="true">›</span>
     </a>`;
@@ -206,6 +206,10 @@
     const params = new URLSearchParams(location.search);
     const axes = { demo: true, fin: true, geo: true };
     let refInsee = params.get("insee") || null;
+    const SCOPES = ["france", "region", "dep", "metro", "radius"];
+    const KM_STEPS = [10, 25, 50, 100];
+    let scope = SCOPES.includes(params.get("scope")) ? params.get("scope") : "france";
+    let radiusKm = KM_STEPS.includes(+params.get("radius")) ? +params.get("radius") : 25;
 
     root.innerHTML = `<section class="block"><div class="wrap">
       <div class="sec-head"><h1>${esc(t("cmp.h1"))}</h1></div>
@@ -217,7 +221,12 @@
     const bodyEl = root.querySelector("#cmp-body");
 
     // shareable URL without a full re-render
-    const syncUrl = () => history.replaceState({}, "", STD.localized("/comparateur" + (refInsee ? `?insee=${refInsee}` : ""), STD.lang));
+    const syncUrl = () => {
+      const q = [];
+      if (refInsee) q.push("insee=" + refInsee);
+      if (scope !== "france") { q.push("scope=" + scope); if (scope === "radius") q.push("radius=" + radiusKm); }
+      history.replaceState({}, "", STD.localized("/comparateur" + (q.length ? "?" + q.join("&") : ""), STD.lang));
+    };
 
     async function pickRandom() {
       try {
@@ -249,14 +258,37 @@
       </button>`;
     }
 
+    // Geographic amplitude — the sub-parameter of the "geography" axis. Restricts
+    // the candidate pool to a scope around the reference (region / department /
+    // métropole / X-km radius). `data.scope` is the server's EFFECTIVE scope (may
+    // have fallen back to france if unavailable), `data.scopeAvail` gates options.
+    function scopeControl(data) {
+      const av = data.scopeAvail || {};
+      const segs = [["france", "cmp.scopeFrance"], ["region", "cmp.scopeRegion"], ["dep", "cmp.scopeDep"], ["metro", "cmp.scopeMetro"], ["radius", "cmp.scopeRadius"]]
+        .map(([k, lab]) => {
+          const dis = av[k] === false;
+          return `<button class="cmp-seg${data.scope === k ? " on" : ""}${dis ? " disabled" : ""}" data-scope="${k}"${dis ? " disabled" : ""}>${esc(t(lab))}</button>`;
+        }).join("");
+      const km = `<div class="cmp-radius"${data.scope === "radius" ? "" : " hidden"}>${KM_STEPS.map((k) => `<button class="cmp-km${radiusKm === k ? " on" : ""}" data-km="${k}">${k} km</button>`).join("")}</div>`;
+      const count = `<p class="cmp-scope-count">${esc(t("cmp.inScope", { n: fmt(data.inScopeCount) }))}</p>`;
+      return `<div class="cmp-scope">
+        <span class="cmp-scope-h">${esc(t("cmp.scopeTitle"))}</span>
+        <div class="cmp-seg-row">${segs}</div>
+        ${km}
+        ${count}
+      </div>`;
+    }
+
     async function renderResults() {
       if (!refInsee) { renderPicker(); bodyEl.innerHTML = ""; return; }
       pickEl.innerHTML = "";
       bodyEl.innerHTML = `<div class="wrap" style="padding:30px 0"><div class="spinner"></div></div>`;
       const enabled = ["demo", "fin", "geo"].filter((k) => axes[k]);
+      const scopeQ = axes.geo && scope !== "france" ? `&scope=${scope}${scope === "radius" ? `&radius=${radiusKm}` : ""}` : "";
       let data;
-      try { data = await STD.getJSON(`/api/similar?insee=${encodeURIComponent(refInsee)}&axes=${enabled.join(",") || "demo"}&limit=12`); }
+      try { data = await STD.getJSON(`/api/similar?insee=${encodeURIComponent(refInsee)}&axes=${enabled.join(",") || "demo"}&limit=12${scopeQ}`); }
       catch { bodyEl.innerHTML = `<p class="board-note">${esc(t("cmp.empty"))}</p>`; return; }
+      scope = data.scope; // adopt the server's effective scope (handles fallback)
       const ref = data.ref, eff = data.axes, refHasFin = !!(ref.fin);
 
       const refSub = [
@@ -282,6 +314,7 @@
           ${axisToggle("fin", eff.fin, !refHasFin)}
           ${axisToggle("geo", eff.geo, false)}
         </div>
+        ${eff.geo ? scopeControl(data) : ""}
       </div>
       ${!refHasFin ? `<div class="note" style="margin-top:12px"><span class="ni">ⓘ</span><span>${esc(t("cmp.noFinNote"))}</span></div>` : ""}
 
@@ -298,7 +331,15 @@
         const k = b.dataset.ax;
         axes[k] = !axes[k];
         if (!axes.demo && !axes.fin && !axes.geo) axes[k] = true; // never zero criteria
+        if (!axes.geo) scope = "france"; // amplitude is a geography sub-parameter
+        syncUrl();
         renderResults();
+      }));
+      bodyEl.querySelectorAll(".cmp-seg:not(.disabled)").forEach((b) => b.addEventListener("click", () => {
+        scope = b.dataset.scope; syncUrl(); renderResults();
+      }));
+      bodyEl.querySelectorAll(".cmp-km").forEach((b) => b.addEventListener("click", () => {
+        radiusKm = +b.dataset.km; scope = "radius"; syncUrl(); renderResults();
       }));
     }
 
@@ -325,6 +366,7 @@
       return `<tr class="${isRef ? "cmp-row-ref" : ""}">
         <td class="cmp-td-name">${isRef ? "" : `<a href="/maire/${esc(r.path)}" data-link>`}<span class="cmp-tn">${esc(r.commune)} <em>(${esc(r.dep)})</em></span>${isRef ? `<span class="cmp-tref-tag">${esc(t("cmp.ref"))}</span>` : ""}${isRef ? "" : "</a>"}</td>
         <td class="cmp-td-num">${isRef ? "—" : `<span class="cmp-mini">${r.score}<i>%</i></span>`}</td>
+        <td class="cmp-td-num">${isRef ? "—" : (r.km != null ? fmt(r.km) + " km" : "—")}</td>
         <td class="cmp-td-num">${r.pop != null ? fmt(r.pop) : "—"}</td>
         <td class="cmp-td-num">${money(f.dette)}</td>
         <td class="cmp-td-num">${epCell(f)}</td>
@@ -339,7 +381,7 @@
       <div class="cmp-table-wrap">
         <table class="cmp-table">
           <thead><tr>
-            ${th("cmp.colCommune", "cmp-td-name")}${th("cmp.match", "cmp-td-num")}${th("cmp.colPop", "cmp-td-num")}
+            ${th("cmp.colCommune", "cmp-td-name")}${th("cmp.match", "cmp-td-num")}${th("cmp.colDist", "cmp-td-num")}${th("cmp.colPop", "cmp-td-num")}
             ${th("cmp.colDette", "cmp-td-num")}${th("cmp.colEpargne", "cmp-td-num")}${th("cmp.colDesendet", "cmp-td-num")}${th("cmp.colReg", "cmp-td-reg")}
           </tr></thead>
           <tbody>${row(ref, true)}${results.map((r) => row(r, false)).join("")}</tbody>

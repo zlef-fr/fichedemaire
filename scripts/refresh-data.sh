@@ -45,6 +45,9 @@ if [ "${WITH_HATVP:-0}" = "1" ]; then
   curl -sSL --http1.1 "https://www.hatvp.fr/livraison/merge/declarations.xml" -o "$RAW/declarations.xml"
 fi
 
+echo "· commune centroids (lon/lat) for the comparateur radius scope"
+curl -sSL "https://geo.api.gouv.fr/communes?fields=code,centre&format=json" -o "$RAW/communes-centres.json"
+
 echo "· build"
 python3 pipeline/build_rne.py
 python3 pipeline/build_finances.py
