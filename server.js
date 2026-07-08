@@ -91,6 +91,8 @@ const server = http.createServer((req, res) => {
       const limit = parseInt(u.searchParams.get("limit"), 10) || 6;
       const out = similar.similar(insee, {
         demo: ax.includes("demo"), fin: ax.includes("fin"), geo: ax.includes("geo"), limit,
+        scope: u.searchParams.get("scope") || "france",
+        radiusKm: parseInt(u.searchParams.get("radius"), 10) || 25,
       });
       return out ? json(res, out, 200, "public, max-age=1800") : json(res, { error: "not found" }, 404, "no-cache");
     }
