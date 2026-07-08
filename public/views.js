@@ -495,26 +495,55 @@
         </div></div>`;
     }
 
-    // cumul
-    const cumulHtml = f.cumul && f.cumul.length ? `<div class="panel side-card"><h3>${esc(t("fiche.cumul"))}</h3>
-      <div class="mandates">${f.cumul.map((c) => `<div class="mandate"><span class="mi">▪</span><span>${esc(c.label)}</span></div>`).join("")}</div></div>` : "";
+    // ── Responsabilités & rattachements (advanced view) ─────────────────────
+    // Consolidates elective mandates (RNE), the commune's intercommunality
+    // (BANATIC) and — where the mayor files with HATVP — the seats they declare
+    // on external bodies (SEM/SPL/EPIC/offices/associations). Factual, sourced.
+    const perFmt = (p) => {
+      if (!p) return "";
+      if (p.deb && p.fin) return `${esc(p.deb)} → ${esc(p.fin)}`;
+      if (p.deb) return esc(t("resp.since", { d: p.deb }));
+      if (p.fin) return `→ ${esc(p.fin)}`;
+      return "";
+    };
+    const respRow = (main, sub, per) =>
+      `<div class="resp-item"><span class="resp-mk">▪</span><span class="resp-lbl">${main}${sub ? `<span class="resp-sub">${sub}</span>` : ""}</span>${per ? `<span class="resp-per">${per}</span>` : ""}</div>`;
+    const respSec = (title, sub, body, src) =>
+      `<div class="resp-sec"><div class="resp-sech">${esc(title)}</div>${sub ? `<p class="resp-secsub">${esc(sub)}</p>` : ""}<div class="resp-list">${body}</div>${src ? `<div class="resp-src">${esc(src)}</div>` : ""}</div>`;
 
-    // HATVP
-    let hatvpHtml = "";
-    if (f.hatvp) {
-      const h = f.hatvp;
-      const flag = (on, lbl) => on ? `<span class="chip blue">✓ ${esc(lbl)}</span>` : "";
-      hatvpHtml = `<div class="panel side-card"><h3>${esc(t("fiche.hatvp"))}</h3>
-        <p class="psub" style="margin-bottom:12px">${esc(t("fiche.hatvpSub"))}</p>
-        <div class="hatvp-counts">
-          <div class="hatvp-count"><b>${h.activitesProf}</b><span>${esc(t("hatvp.actProf"))}</span></div>
-          <div class="hatvp-count"><b>${h.participationsFinancieres}</b><span>${esc(t("hatvp.partFin"))}</span></div>
-          <div class="hatvp-count"><b>${h.participationsDirigeant}</b><span>${esc(t("hatvp.dirig"))}</span></div>
-        </div>
-        <div class="hatvp-flags">${flag(h.consultant, t("hatvp.consultant"))}${flag(h.activiteConjoint, t("hatvp.conjoint"))}${flag(h.benevole, t("hatvp.benevole"))}</div>
-        ${h.dateDepot ? `<p class="psub">${esc(t("hatvp.filed", { date: h.dateDepot }))}</p>` : ""}
-        <div class="link-row"><a href="${esc(h.url)}" target="_blank" rel="noopener">${esc(t("hatvp.link"))}</a></div></div>`;
-    }
+    const hv = f.hatvp;
+    const sieges = (hv && hv.sieges) || [];
+    const benevole = (hv && hv.benevoleList) || [];
+    const activites = (hv && hv.activitesList) || [];
+    const hasResp = (f.cumul && f.cumul.length) || f.epci || sieges.length || benevole.length || activites.length || hv;
+
+    let respBody = "";
+    if (f.cumul && f.cumul.length)
+      respBody += respSec(t("resp.mandates"), null,
+        f.cumul.map((c) => respRow(esc(c.label))).join(""), t("resp.mandatesSrc"));
+    if (f.epci)
+      respBody += respSec(t("resp.inter"), t("resp.interSub"),
+        respRow(esc(f.epci.nom), esc(f.epci.natureLabel)));
+    if (sieges.length)
+      respBody += respSec(t("resp.sieges"), t("resp.siegesSub"),
+        sieges.map((s) => respRow(esc(s.soc || s.act), (s.soc && s.act) ? esc(s.act) : "", perFmt(s))).join(""));
+    if (benevole.length)
+      respBody += respSec(t("resp.benevole"), null,
+        benevole.map((s) => respRow(esc(s.soc || s.act), (s.soc && s.act) ? esc(s.act) : "")).join(""));
+    if (activites.length)
+      respBody += respSec(t("resp.activites"), null,
+        activites.map((s) => respRow(esc(s.act || s.soc), (s.act && s.soc) ? esc(s.soc) : "", perFmt(s))).join(""));
+
+    const hatvpFoot = hv ? `<div class="resp-foot">
+      <p class="resp-cov"><span class="ni">ⓘ</span> ${esc(t("resp.coverage"))}</p>
+      <div class="resp-footrow">${hv.dateDepot ? `<span class="resp-filed">${esc(t("hatvp.filed", { date: hv.dateDepot }))}</span>` : "<span></span>"}
+        <a href="${esc(hv.url)}" target="_blank" rel="noopener">${esc(t("hatvp.link"))}</a></div></div>` : "";
+
+    const respHtml = hasResp ? `<div class="panel resp-panel">
+      <h2>${esc(t("resp.title"))}</h2>
+      <p class="psub" style="margin-bottom:18px">${esc(t("resp.sub"))}</p>
+      ${respBody || `<p class="resp-empty">${esc(t("resp.empty"))}</p>`}
+      ${hatvpFoot}</div>` : "";
 
     // commune context
     const meta = fin ? fin.meta : {};
@@ -526,7 +555,7 @@
       <div class="kv"><span class="k">${esc(t("fiche.pop"))}</span><span class="v">${f.pop != null ? fmt(f.pop) : "—"}</span></div>
       <div class="kv"><span class="k">${esc(t("fiche.dep"))}</span><span class="v">${esc(f.dep)} · ${esc(f.depNom)}</span></div>
       ${meta.reg ? `<div class="kv"><span class="k">${esc(t("fiche.reg"))}</span><span class="v">${esc(meta.reg)}</span></div>` : ""}
-      ${meta.epci ? `<div class="kv"><span class="k">${esc(t("fiche.epci"))}</span><span class="v">${esc(meta.epci)}</span></div>` : ""}
+      ${f.epci ? `<div class="kv"><span class="k">${esc(t("fiche.epci"))}</span><span class="v">${esc(f.epci.nom)}</span></div>` : (meta.epci ? `<div class="kv"><span class="k">${esc(t("fiche.epci"))}</span><span class="v">${esc(meta.epci)}</span></div>` : "")}
       ${tags.length ? `<div class="fiche-badges" style="margin-top:12px">${tags.map((x) => `<span class="chip">${esc(x)}</span>`).join("")}</div>` : ""}</div>`;
 
     // identity card
@@ -567,12 +596,11 @@
         <div>
           ${metricHtml}
           ${chartsHtml}
+          ${respHtml}
           ${decpHtml}
         </div>
         <div>
           ${idHtml}
-          ${cumulHtml}
-          ${hatvpHtml}
           ${communeHtml}
           <div class="panel side-card"><h3>${esc(t("fiche.sources"))}</h3>
             <div class="link-row">

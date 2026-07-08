@@ -79,11 +79,17 @@ scan("rne-senateurs.csv", lambda r: (
 # députés européens
 scan("rne-rpe.csv", lambda r: ("europe", "Député·e européen·ne"))
 
+# the RNE "Libellé de la fonction" sometimes already spells out the assembly
+# ("… Vice-président du conseil régional"), so only append it when it's missing
+# — otherwise the label reads "… du conseil régional du conseil régional".
+def with_assembly(fonc, assembly):
+    return fonc if "conseil" in fonc.lower() else "%s du %s" % (fonc, assembly)
+
 # conseillers départementaux (+ fonction si présidence/VP)
 def cd_builder(r):
     fonc = (r.get("Libellé de la fonction") or "").strip()
     if fonc:
-        return ("cd", "%s du conseil départemental%s" % (fonc, " — " + dep_lbl(r) if dep_lbl(r) else ""))
+        return ("cd", with_assembly(fonc, "conseil départemental") + (" — " + dep_lbl(r) if dep_lbl(r) else ""))
     return ("cd", "Conseiller·ère départemental·e" + (" — " + dep_lbl(r) if dep_lbl(r) else ""))
 scan("rne-cd.csv", cd_builder)
 
@@ -92,7 +98,7 @@ def cr_builder(r):
     fonc = (r.get("Libellé de la fonction") or "").strip()
     reg = (r.get("Libellé de la région") or "").strip()
     if fonc:
-        return ("cr", "%s du conseil régional%s" % (fonc, " — " + reg if reg else ""))
+        return ("cr", with_assembly(fonc, "conseil régional") + (" — " + reg if reg else ""))
     return ("cr", "Conseiller·ère régional·e" + (" — " + reg if reg else ""))
 scan("rne-cr.csv", cr_builder)
 
