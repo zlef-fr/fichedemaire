@@ -66,6 +66,36 @@ function png(svg, size) {
   return new Resvg(svg, { fitTo: { mode: "width", value: size } }).render().asPng();
 }
 
+// Diagonal écharpe corner sash (top-left → bottom-right) + gilt edge, for the
+// landscape OG card. Mirrors lib/og.js so both slant the same way as the logo.
+function ogSash() {
+  return `<g transform="translate(1200,630) rotate(-24)">
+    <rect x="-18" y="-900" width="9" height="940" fill="#9c7c26"/>
+    <rect x="-9" y="-900" width="9" height="940" fill="#c9a94a"/>
+    <rect x="0" y="-900" width="66" height="940" fill="${BLEU}"/>
+    <rect x="66" y="-900" width="66" height="940" fill="#ffffff"/>
+    <rect x="132" y="-900" width="66" height="940" fill="${ROUGE}"/>
+  </g>`;
+}
+
+// Default site OG share card (1200×630), rendered with Inter.
+function defaultOgSvg() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+    <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbfaf6"/><stop offset="1" stop-color="#eef1ea"/>
+    </linearGradient></defs>
+    <rect width="1200" height="630" fill="url(#bg)"/>
+    ${ogSash()}
+    <g font-family="Inter, system-ui, sans-serif">
+      <text x="80" y="120" font-size="30" font-weight="800" fill="${BLEU}" letter-spacing="0.5">fichedemaire.fr</text>
+      <text x="78" y="270" font-size="78" font-weight="800" fill="#161616" letter-spacing="-2">Votre commune,</text>
+      <text x="78" y="360" font-size="78" font-weight="800" letter-spacing="-2"><tspan fill="#161616">votre maire, </tspan><tspan fill="${BLEU}">en chiffres.</tspan></text>
+      <text x="80" y="452" font-size="29" fill="#565656">34 637 communes · identité du maire, finances, HATVP — 100 % sourcé.</text>
+      <text x="80" y="560" font-size="24" fill="#8a8a8a">RNE · OFGL · HATVP — données publiques en licence Ouverte</text>
+    </g>
+  </svg>`;
+}
+
 // Inter is the brand face; vendored (gitignored) for on-brand raster rendering.
 const INTER = path.join(__dirname, "fonts", "Inter.ttf");
 function pngFont(svg, width) {
@@ -100,6 +130,8 @@ function writeAll() {
   fs.writeFileSync(path.join(PUB, "favicon-32.png"), png(faviconSvg, 32));
   fs.writeFileSync(path.join(PUB, "icon-180.png"), png(appIconSvg(180), 180));
   fs.writeFileSync(path.join(PUB, "icon-512.png"), png(appIconSvg(512), 512));
+  // default site OG share card (Inter, sash matches the logo)
+  fs.writeFileSync(path.join(PUB, "og.png"), pngFont(defaultOgSvg(), 1200));
   // media-kit copies (logomark + wordmark lockup)
   fs.writeFileSync(path.join(KIT, "logomark.svg"), faviconSvg + "\n");
   fs.writeFileSync(path.join(KIT, "logomark-512.png"), png(faviconSvg, 512));
