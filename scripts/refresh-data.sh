@@ -17,6 +17,8 @@ curl -sSL "$RNE/20260505-151941/elus-conseillers-departementaux-cd.csv"     -o "
 curl -sSL "$RNE/20260505-151954/elus-conseillers-regionaux-cr.csv"          -o "$RAW/rne-cr.csv"
 curl -sSL "$RNE/20260505-152023/elus-representant-parlement-europeen-rpe.csv" -o "$RAW/rne-rpe.csv"
 curl -sSL "$RNE/20260505-151923/elus-conseillers-communautaires-epci.csv"   -o "$RAW/rne-epci.csv"
+# full municipal-council register (published on its own cadence, distinct timestamp)
+curl -sSL "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260609-130245/elus-conseillers-municipaux-cm.csv" -o "$RAW/elus-conseillers-municipaux.csv"
 
 echo "· OFGL commune finances (bulk export, ~700MB uncompressed)"
 URL=$(python3 scripts/fetch_ofgl.py)
@@ -45,6 +47,10 @@ if [ "${WITH_HATVP:-0}" = "1" ]; then
   curl -sSL --http1.1 "https://www.hatvp.fr/livraison/merge/declarations.xml" -o "$RAW/declarations.xml"
 fi
 
+echo "· résultats municipales 2026 — per-commune (tour 1 + tour 2), Min. Intérieur"
+curl -sSL "https://static.data.gouv.fr/resources/elections-municipales-2026-resultats-du-premier-tour/20260320-164339/municipales-2026-resultats-communes-2026-03-20.csv" -o "$RAW/muni2026-communes-t1.csv"
+curl -sSL "https://static.data.gouv.fr/resources/elections-municipales-2026-resultats-du-scond-tour/20260323-180124/municipales-2026-resultats-communes-2026-03-23-16h14.csv" -o "$RAW/muni2026-communes-t2.csv"
+
 echo "· commune centroids (lon/lat) for the comparateur radius scope"
 curl -sSL "https://geo.api.gouv.fr/communes?fields=code,centre&format=json" -o "$RAW/communes-centres.json"
 
@@ -54,6 +60,8 @@ python3 pipeline/build_finances.py
 python3 pipeline/build_cumul.py
 python3 pipeline/build_epci.py
 python3 pipeline/build_decp.py
+python3 pipeline/build_council.py            # composition du conseil municipal (all communes)
+python3 pipeline/build_elections.py          # participation + liste en tête (municipales 2026)
 python3 pipeline/build_history.py            # 2020-2026 holder + renewal (all communes)
 python3 pipeline/build_history_wikidata.py   # best-effort 2014-2020 holder + deeper tenure
 [ -f "$RAW/declarations.xml" ] && python3 pipeline/build_hatvp.py || echo "  (skip HATVP — no declarations.xml)"
