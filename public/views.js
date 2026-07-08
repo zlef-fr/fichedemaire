@@ -562,6 +562,14 @@
         else { await navigator.clipboard.writeText(url); STD.toast(t("share.copied")); }
       } catch {}
     });
+
+    // lazy-load the "communes comparables" panel (all three axes, top 6)
+    const cmpList = root.querySelector("#cmp-fiche-list");
+    if (cmpList) STD.getJSON(`/api/similar?insee=${encodeURIComponent(f.insee)}&limit=6`).then((d) => {
+      cmpList.innerHTML = d.results && d.results.length
+        ? d.results.map(cmpItem).join("")
+        : `<p class="board-note" style="margin:0">${esc(t("cmp.empty"))}</p>`;
+    }).catch(() => { const s = root.querySelector("#cmp-fiche"); if (s) s.remove(); });
   };
 
   function dateFmt(iso) {
