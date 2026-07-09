@@ -141,6 +141,7 @@ window.STD_I18N = {
     "cl.dettePlus": "Plus endettées", "cl.detteMoins": "Moins endettées",
     "cl.epargneTop": "Meilleure épargne", "cl.desendetTendu": "Désendettement le plus tendu",
     "cl.jeunes": "Maires les plus jeunes", "cl.doyens": "Doyens des maires", "cl.villes": "Plus grandes villes",
+    "cl.fullData": "Voir le classement complet des 34 637 communes sur",
     "cl.perhab": "€/hab.", "cl.hab": "hab.", "cl.ans": "ans", "cl.years": "ans",
 
     "me.h1": "Méthode & sources",
@@ -365,6 +366,7 @@ window.STD_I18N = {
     "cl.dettePlus": "Most indebted", "cl.detteMoins": "Least indebted",
     "cl.epargneTop": "Best savers", "cl.desendetTendu": "Most stretched debt",
     "cl.jeunes": "Youngest mayors", "cl.doyens": "Elder mayors", "cl.villes": "Largest cities",
+    "cl.fullData": "See the full ranking of all 34,637 communes on",
     "cl.perhab": "€/capita", "cl.hab": "pop.", "cl.ans": "yrs", "cl.years": "yrs",
 
     "me.h1": "Method & sources",

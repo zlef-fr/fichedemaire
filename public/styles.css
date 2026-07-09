@@ -112,6 +112,10 @@ section.block { padding: 32px 0; }
 .rank-row .who .nm { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rank-row .who .sub { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rank-row .val { font-weight: 800; font-size: 16px; text-align: right; white-space: nowrap; }
+/* "see the full ranking on Sluice" — deep-links a capped board into the open-data explorer */
+.rank-more { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 16px; padding: 11px 16px; border: 1px solid var(--line-2); border-radius: 12px; background: #fff; font-weight: 600; font-size: 14px; color: var(--bleu); transition: background .16s, border-color .16s, transform .12s; }
+.rank-more:hover { background: var(--bleu-soft); border-color: var(--bleu); text-decoration: none; transform: translateY(-1px); }
+.rank-more .rm-src { font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 
 /* ── Cards ──────────────────────────────────────────────────────────────── */
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow-sm); }

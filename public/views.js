@@ -808,14 +808,19 @@
   }
 
   // ── CLASSEMENTS ───────────────────────────────────────────────────────────
+  // Each board is a top-25 slice of a full ranking. `sluice` deep-links the rest
+  // into the open-data explorer at sluice.zlef.fr/d/fichedemaire-communes (all
+  // 34,637 communes, sortable/filterable) — so a capped board is never a dead end.
+  // Finance boards replay their population floor via min.pop so the full list matches.
+  const SLUICE_BASE = "https://sluice.zlef.fr/d/fichedemaire-communes";
   const BOARDS = [
-    { key: "dettePlus", ic: "💶", unit: "€", suf: "cl.perhab" },
-    { key: "detteMoins", ic: "🪙", unit: "€", suf: "cl.perhab" },
-    { key: "epargneTop", ic: "🐖", unit: "%", suf: null },
-    { key: "desendetTendu", ic: "⚠️", unit: "cl.years", suf: null },
-    { key: "villes", ic: "🏙️", unit: "cl.hab", suf: null },
-    { key: "jeunes", ic: "🎂", unit: "cl.ans", suf: null },
-    { key: "doyens", ic: "🎖️", unit: "cl.ans", suf: null },
+    { key: "dettePlus", ic: "💶", unit: "€", suf: "cl.perhab", sluice: "?view=table&sort=-fin.dette&min.pop=10000" },
+    { key: "detteMoins", ic: "🪙", unit: "€", suf: "cl.perhab", sluice: "?view=table&sort=fin.dette&min.pop=10000" },
+    { key: "epargneTop", ic: "🐖", unit: "%", suf: null, sluice: "?view=table&sort=-fin.ep&min.pop=10000" },
+    { key: "desendetTendu", ic: "⚠️", unit: "cl.years", suf: null, sluice: "?view=table&sort=-fin.des&min.pop=10000" },
+    { key: "villes", ic: "🏙️", unit: "cl.hab", suf: null, sluice: "?view=table&sort=-pop" },
+    { key: "jeunes", ic: "🎂", unit: "cl.ans", suf: null, sluice: "?view=table&sort=age" },
+    { key: "doyens", ic: "🎖️", unit: "cl.ans", suf: null, sluice: "?view=table&sort=-age" },
   ];
   V.classements = async (root) => {
     const b = await STD.getJSON("/api/boards");
@@ -825,9 +830,13 @@
       <p class="board-note">${esc(t("cl.floor", { n: fmt(b.popFloor || 10000) }))}</p>
       <div class="tabs" id="tabs">${BOARDS.map((x, i) => `<button class="tab${i === 0 ? " active" : ""}" data-b="${x.key}">${x.ic} ${esc(t("cl." + x.key))}</button>`).join("")}</div>
       <div class="card rank-card" id="board"></div>
+      <a class="rank-more" id="board-more" target="_blank" rel="noopener"></a>
     </div></section>`;
     const render = (key) => {
       const cfg = BOARDS.find((x) => x.key === key);
+      const more = root.querySelector("#board-more");
+      more.href = SLUICE_BASE + cfg.sluice;
+      more.innerHTML = `${esc(t("cl.fullData"))} <span class="rm-src">sluice.zlef.fr</span> →`;
       const rows = (b[key] || []).map((m, i) => {
         let val;
         if (cfg.unit === "%") val = m.value + " %";
