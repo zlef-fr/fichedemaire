@@ -75,6 +75,14 @@ const server = http.createServer((req, res) => {
     if (p === "/api/stats") return json(res, { ...data.store.stats, generatedAt: data.store.generatedAt }, 200, "public, max-age=3600");
     if (p === "/api/boards") return json(res, data.store.boards, 200, "public, max-age=3600");
     if (p === "/api/deps") return json(res, { deps: data.store.deps }, 200, "public, max-age=3600");
+    // Bulk open-data export: the full commune feature index (RNE identity + OFGL
+    // finance ratios + geo), one row per commune. Lets downstream consumers pull
+    // the whole dataset in one shot (e.g. the Sluice feed gateway / data explorer).
+    if (p === "/api/communes") {
+      return fs.readFile(path.join(__dirname, "data", "features.json"), (e, buf) =>
+        e ? json(res, { error: "unavailable" }, 503, "no-cache")
+          : send(res, 200, buf, { "content-type": MIME[".json"], "cache-control": "public, max-age=86400" }));
+    }
     if (p === "/api/faq") return json(res, faq, 200, "public, max-age=3600");
     if (p === "/api/dep") {
       const dep = u.searchParams.get("dep") || "";
