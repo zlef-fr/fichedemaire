@@ -201,6 +201,7 @@ section.block { padding: 32px 0; }
 .ratio.warn { background: var(--warn-soft); border-color: #ecd9a6; } .ratio.warn .rv { color: var(--warn); } .ratio.warn .rtag { background: #f3e3b3; color: #7a5c0a; }
 .ratio.bad { background: var(--bad-soft); border-color: #f2c9c7; } .ratio.bad .rv { color: var(--bad); } .ratio.bad .rtag { background: #f7d4d2; color: var(--bad); }
 .ratio.neutral .rv { color: var(--ink); }
+.ratio.neutral .rtag { background: var(--bg-2); color: var(--ink-2); }
 
 .fiche-cols { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 22px; margin-top: 22px; align-items: start; }
 .fiche-cols > div { min-width: 0; }
