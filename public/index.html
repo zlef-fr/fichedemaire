@@ -23,12 +23,11 @@
 <link rel="apple-touch-icon" href="/icon-180.png?v=11">
 <link rel="manifest" href="/site.webmanifest">
 <!--/zlef-seo-->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;850;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/styles.css?v=11">
+<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/styles.css?v=12">
 </head>
 <body>
+<a class="skip-link" href="#app" data-i18n="skip">Aller au contenu</a>
 <header class="top"><div class="wrap top-inner">
   <a class="brand" href="/" data-link>
     <span class="sash"></span>
@@ -40,7 +39,6 @@
     <a href="/comparateur" data-link data-view="comparateur" data-i18n="nav.comparateur">Comparateur</a>
     <a href="/classements" data-link data-view="classements" data-i18n="nav.classements">Classements</a>
     <a href="/methode" data-link data-view="methode" data-i18n="nav.methode">Méthode</a>
-    <button class="lang-btn" id="langtoggle" aria-label="EN/FR">FR / EN</button>
   </nav>
 </div></header>
 
@@ -60,12 +58,11 @@
   </div>
 </div></footer>
 
-<script src="/i18n.js?v=11"></script>
-<script src="/app.js?v=11"></script>
-<script src="/views.js?v=11"></script>
+<script src="/i18n.js?v=12"></script>
+<script src="/app.js?v=12"></script>
+<script src="/views.js?v=12"></script>
 <script>
   document.querySelector(".menu-btn").addEventListener("click", () => document.querySelector("nav.main").classList.toggle("open"));
-  document.getElementById("langtoggle").addEventListener("click", () => STD.setLang(STD.lang === "fr" ? "en" : "fr"));
   STD.boot();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(()=>{});
 </script>

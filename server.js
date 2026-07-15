@@ -29,6 +29,7 @@ const MIME = {
   ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8",
   ".svg": "image/svg+xml", ".png": "image/png", ".webmanifest": "application/manifest+json",
   ".ico": "image/x-icon", ".xml": "application/xml; charset=utf-8", ".txt": "text/plain; charset=utf-8",
+  ".woff2": "font/woff2",
 };
 
 function send(res, code, body, headers = {}) { res.writeHead(code, headers); res.end(body); }
@@ -36,10 +37,12 @@ function json(res, obj, code = 200, cache = "public, max-age=300") {
   send(res, code, JSON.stringify(obj), { "content-type": MIME[".json"], "cache-control": cache });
 }
 function sendShell(res, pathname) {
-  fs.readFile(path.join(PUB, "index.html"), "utf8", (e, html) =>
-    e ? send(res, 404, "not found")
-      : send(res, 200, seo.injectMeta(html, pathname), { "content-type": MIME[".html"], "cache-control": "no-cache" })
-  );
+  // unknown routes come back with a real 404 status (no soft-404s)
+  fs.readFile(path.join(PUB, "index.html"), "utf8", (e, html) => {
+    if (e) return send(res, 404, "not found");
+    const out = seo.injectMeta(html, pathname);
+    send(res, out.status, out.html, { "content-type": MIME[".html"], "cache-control": "no-cache" });
+  });
 }
 function serveStatic(req, res, urlPath) {
   const pathname = decodeURIComponent(urlPath.split("?")[0]);
@@ -47,9 +50,13 @@ function serveStatic(req, res, urlPath) {
   const file = path.join(PUB, path.normalize(pathname).replace(/^(\.\.[/\\])+/, ""));
   if (!file.startsWith(PUB)) return send(res, 403, "forbidden");
   fs.readFile(file, (err, buf) => {
-    if (err) return sendShell(res, pathname); // SPA fallback → client router
+    if (err) {
+      // missing asset-like path (has an extension) → plain 404, not the shell
+      if (/\.[a-z0-9]{2,5}$/i.test(pathname)) return send(res, 404, "not found", { "content-type": MIME[".txt"] });
+      return sendShell(res, pathname); // route → shell (SSR + real status inside)
+    }
     const ext = path.extname(file);
-    const cache = ext === ".html" ? "no-cache" : "public, max-age=3600";
+    const cache = ext === ".html" ? "no-cache" : ext === ".woff2" ? "public, max-age=31536000, immutable" : "public, max-age=3600";
     send(res, 200, buf, { "content-type": MIME[ext] || "application/octet-stream", "cache-control": cache });
   });
 }
@@ -139,6 +146,7 @@ const server = http.createServer((req, res) => {
     return body ? send(res, 200, body, { "content-type": MIME[".xml"], "cache-control": "public, max-age=3600" }) : send(res, 404, "not found");
   }
   if (pathOnly === "/robots.txt") return send(res, 200, seo.robots(), { "content-type": MIME[".txt"], "cache-control": "public, max-age=3600" });
+  if (pathOnly === "/llms.txt") return send(res, 200, seo.llms(), { "content-type": MIME[".txt"], "cache-control": "public, max-age=3600" });
 
   // ---- dynamic OG share image — PNG (cached) or SVG ----------------------
   if (url.startsWith("/og/")) {

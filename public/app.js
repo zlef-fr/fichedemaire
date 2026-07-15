@@ -85,6 +85,23 @@ STD.epargneClass = (pct) => {
   if (pct >= 5) return { cls: "warn", tag: STD.t("tag.surveiller") };
   return { cls: "bad", tag: STD.t("tag.tendu") };
 };
+// Staff-cost share of operating expenditure, judged against the national
+// distribution of same-size communes (quartiles from data/features.json,
+// 2024 OFGL exercise) — factual positioning, not an opinion threshold.
+const PERSO_Q = [
+  { max: 500, q1: 18.5, q3: 38.2 },
+  { max: 2000, q1: 36.8, q3: 50.3 },
+  { max: 10000, q1: 48.1, q3: 57.9 },
+  { max: 50000, q1: 56.3, q3: 64.1 },
+  { max: Infinity, q1: 56.6, q3: 63.2 },
+];
+STD.persoClass = (pct, pop) => {
+  if (pct == null) return { cls: "neutral", tag: "" };
+  const b = PERSO_Q.find((x) => (pop || 0) < x.max) || PERSO_Q[PERSO_Q.length - 1];
+  if (pct <= b.q1) return { cls: "good", tag: STD.t("tag.persoLow") };
+  if (pct <= b.q3) return { cls: "neutral", tag: STD.t("tag.persoMid") };
+  return { cls: "warn", tag: STD.t("tag.persoHigh") };
+};
 
 // ── dependency-free SVG charts (with interactive tooltips) ─────────────────
 // Chart geometry (viewBox units). SVG scales to container width, aspect kept.

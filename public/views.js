@@ -171,6 +171,9 @@
       <div id="browse" style="margin-top:26px"></div>
     </div></section>`;
     wireSearch(root);
+    // deep-link search: /communes?q=… (used by the WebSite SearchAction JSON-LD)
+    const q0 = params.get("q");
+    if (q0) { const inp = root.querySelector("#q"); if (inp) { inp.value = q0; inp.dispatchEvent(new Event("input")); } }
     const browse = root.querySelector("#browse");
     if (dep) {
       browse.innerHTML = `<div class="spinner"></div>`;
@@ -490,7 +493,7 @@
         ${ratio(dc.cls, t("fiche.desendet"), desVal, r.epargneNegative ? "" : t("fiche.years"), dc.tag)}
         ${ratio(ec.cls, t("fiche.epargne"), r.tauxEpargne != null ? r.tauxEpargne : "—", r.tauxEpargne != null ? "%" : "", ec.tag)}
         ${ratio("neutral", t("fiche.dettehab"), r.dettePerHab != null ? fmt(r.dettePerHab) : "—", "€", "")}
-        ${ratio("neutral", t("fiche.perso"), r.partPerso != null ? r.partPerso : "—", r.partPerso != null ? "%" : "", "")}
+        ${(() => { const pc = STD.persoClass(r.partPerso, f.pop); return ratio(pc.cls, t("fiche.perso"), r.partPerso != null ? r.partPerso : "—", r.partPerso != null ? "%" : "", pc.tag); })()}
       </div>`;
     }
 
