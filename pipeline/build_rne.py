@@ -17,7 +17,9 @@ RAW = os.path.join(HERE, "raw")
 DATA = os.path.abspath(os.path.join(HERE, "..", "data"))
 os.makedirs(DATA, exist_ok=True)
 
-TODAY = date(2026, 7, 8)  # build reference (no runtime Date in sandboxed scripts)
+# Build reference date: real "today" so ages/seniority stay correct on the daily
+# rebuild. FICHE_BUILD_DATE=YYYY-MM-DD pins it for a reproducible build.
+TODAY = date.fromisoformat(os.environ["FICHE_BUILD_DATE"]) if os.environ.get("FICHE_BUILD_DATE") else date.today()
 
 # ── helpers ──────────────────────────────────────────────────────────────
 def strip_accents(s):

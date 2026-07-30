@@ -11,3 +11,8 @@ services:
       - SITE_BASE=https://fichedemaire.fr
     volumes:
       - ./var:/app/var
+      # data/ is rebuilt daily on the host from Sluice artifacts (see
+      # scripts/refresh-data.sh + /root/bin/fiche-refresh). Bind-mounting it means
+      # a refresh is a restart, not an image rebuild — the image still carries a
+      # copy (COPY data ./data) so it runs standalone.
+      - ./data:/app/data
