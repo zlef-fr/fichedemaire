@@ -20,7 +20,9 @@ from datetime import date
 
 HERE = os.path.dirname(__file__)
 DATA = os.path.abspath(os.path.join(HERE, "..", "data"))
-TODAY = date(2026, 7, 8)
+# Build reference date: real "today" so ages/seniority stay correct on the daily
+# rebuild. FICHE_BUILD_DATE=YYYY-MM-DD pins it for a reproducible build.
+TODAY = date.fromisoformat(os.environ["FICHE_BUILD_DATE"]) if os.environ.get("FICHE_BUILD_DATE") else date.today()
 # the 2014-2020 municipal term (installed spring 2014 → renewed spring/summer 2020)
 TERM0, TERM1 = date(2014, 4, 1), date(2020, 7, 1)
 

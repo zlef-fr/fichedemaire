@@ -1,0 +1,242 @@
+[
+  {
+    "id": "fr-rne-maires",
+    "name": "RNE — élus maires",
+    "description": "Répertoire national des élus: les maires en exercice (identité, date de naissance, CSP).",
+    "adapter": "http-artifact",
+    "url": "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-152119/elus-maires-mai.csv",
+    "options": { "filename": "elus-maires-mai.csv", "probe": { "type": "http-head" } },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/",
+    "attribution": "Ministère de l'Intérieur — RNE",
+    "tags": ["france", "elus", "rne", "maires", "opendata"]
+  },
+  {
+    "id": "fr-rne-conseillers-municipaux",
+    "name": "RNE — conseillers municipaux",
+    "description": "Registre complet des conseils municipaux (~72 Mo). Publié sur sa propre cadence.",
+    "adapter": "http-artifact",
+    "url": "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260609-130245/elus-conseillers-municipaux-cm.csv",
+    "options": { "filename": "elus-conseillers-municipaux.csv", "probe": { "type": "http-head" } },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/",
+    "attribution": "Ministère de l'Intérieur — RNE",
+    "tags": ["france", "elus", "rne", "conseils-municipaux", "opendata"]
+  },
+  {
+    "id": "fr-rne-deputes",
+    "name": "RNE — élus députés",
+    "adapter": "http-artifact",
+    "url": "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-152059/elus-deputes-dep.csv",
+    "options": { "filename": "rne-deputes.csv", "probe": { "type": "http-head" } },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/",
+    "attribution": "Ministère de l'Intérieur — RNE",
+    "tags": ["france", "elus", "rne", "deputes", "opendata"]
+  },
+  {
+    "id": "fr-rne-senateurs",
+    "name": "RNE — élus sénateurs",
+    "adapter": "http-artifact",
+    "url": "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-152040/elus-senateurs-sen.csv",
+    "options": { "filename": "rne-senateurs.csv", "probe": { "type": "http-head" } },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/",
+    "attribution": "Ministère de l'Intérieur — RNE",
+    "tags": ["france", "elus", "rne", "senateurs", "opendata"]
+  },
+  {
+    "id": "fr-rne-conseillers-departementaux",
+    "name": "RNE — conseillers départementaux",
+    "adapter": "http-artifact",
+    "url": "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-151941/elus-conseillers-departementaux-cd.csv",
+    "options": { "filename": "rne-cd.csv", "probe": { "type": "http-head" } },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/",
+    "attribution": "Ministère de l'Intérieur — RNE",
+    "tags": ["france", "elus", "rne", "departements", "opendata"]
+  },
+  {
+    "id": "fr-rne-conseillers-regionaux",
+    "name": "RNE — conseillers régionaux",
+    "adapter": "http-artifact",
+    "url": "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-151954/elus-conseillers-regionaux-cr.csv",
+    "options": { "filename": "rne-cr.csv", "probe": { "type": "http-head" } },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/",
+    "attribution": "Ministère de l'Intérieur — RNE",
+    "tags": ["france", "elus", "rne", "regions", "opendata"]
+  },
+  {
+    "id": "fr-rne-representants-parlement-europeen",
+    "name": "RNE — représentants au Parlement européen",
+    "adapter": "http-artifact",
+    "url": "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-152023/elus-representant-parlement-europeen-rpe.csv",
+    "options": { "filename": "rne-rpe.csv", "probe": { "type": "http-head" } },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/",
+    "attribution": "Ministère de l'Intérieur — RNE",
+    "tags": ["france", "elus", "rne", "parlement-europeen", "opendata"]
+  },
+  {
+    "id": "fr-rne-conseillers-communautaires",
+    "name": "RNE — conseillers communautaires (EPCI)",
+    "adapter": "http-artifact",
+    "url": "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-151923/elus-conseillers-communautaires-epci.csv",
+    "options": { "filename": "rne-epci.csv", "probe": { "type": "http-head" } },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/",
+    "attribution": "Ministère de l'Intérieur — RNE",
+    "tags": ["france", "elus", "rne", "epci", "opendata"]
+  },
+  {
+    "id": "fr-rne-maires-2020-2026",
+    "name": "RNE — élus maires, mandature 2020-2026 (capture Internet Archive)",
+    "description": "Le RNE vivant ne contient que la mandature en cours; cette capture Wayback figée sert à détecter les renouvellements et le maire précédent.",
+    "adapter": "http-artifact",
+    "url": "http://web.archive.org/web/20250628120000id_/https://www.data.gouv.fr/fr/datasets/r/2876a346-d50c-4911-934e-19ee07b0e503",
+    "options": { "filename": "elus-maires-2020-2026.csv.gz", "probe": { "type": "http-head" }, "keep": 1 },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://web.archive.org/",
+    "attribution": "Ministère de l'Intérieur — RNE (via Internet Archive)",
+    "tags": ["france", "elus", "rne", "historique", "opendata"]
+  },
+  {
+    "id": "fr-ofgl-communes",
+    "name": "OFGL — finances des communes (export bulk, agrégats curatés)",
+    "description": "Export OpenDataSoft ~700 Mo: 14 agrégats du budget principal, tous exercices. URL générée par scripts/fetch_ofgl.py. Le probe lit data_processed du catalogue, donc une vérification quotidienne ne coûte qu'une petite requête.",
+    "adapter": "http-artifact",
+    "url": "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/ofgl-base-communes/exports/csv?where=type_de_budget%3D%22Budget+principal%22+AND+agregat+IN+%28%22Recettes+de+fonctionnement%22%2C%22D%C3%A9penses+de+fonctionnement%22%2C%22Epargne+brute%22%2C%22Epargne+nette%22%2C%22Encours+de+dette%22%2C%22Annuit%C3%A9+de+la+dette%22%2C%22D%C3%A9penses+d%27%C3%A9quipement%22%2C%22Frais+de+personnel%22%2C%22Dotation+globale+de+fonctionnement%22%2C%22Imp%C3%B4ts+locaux%22%2C%22Imp%C3%B4ts+et+taxes%22%2C%22Recettes+totales%22%2C%22Charges+financi%C3%A8res%22%2C%22Subventions+aux+personnes+de+droit+priv%C3%A9%22%29&select=com_code%2Ccom_name%2Cdep_code%2Cdep_name%2Creg_name%2Cepci_name%2Ccateg%2Crural%2Ctouristique%2Cmontagne%2Ctranche_population%2Cexer%2Cagregat%2Cmontant%2Ceuros_par_habitant%2Cptot&delimiter=%3B",
+    "options": {
+      "filename": "ofgl-communes.csv",
+      "keep": 1,
+      "probe": { "type": "ods-dataset", "url": "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/ofgl-base-communes" }
+    },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://data.ofgl.fr/",
+    "attribution": "Observatoire des finances et de la gestion publique locales (OFGL)",
+    "tags": ["france", "communes", "finances", "ofgl", "opendata"]
+  },
+  {
+    "id": "fr-ofgl-communes-siren",
+    "name": "OFGL — annuaire SIREN des communes (com_code → siren)",
+    "description": "Un seul agrégat suffit à énumérer chaque commune une fois. Sert à joindre acheteur DECP → commune. URL générée par scripts/fetch_decp.py siren.",
+    "adapter": "http-artifact",
+    "url": "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/ofgl-base-communes/exports/csv?where=agregat%3D%22Encours+de+dette%22+AND+type_de_budget%3D%22Budget+principal%22&select=com_code%2Csiren&delimiter=%2C",
+    "options": {
+      "filename": "ofgl-siren.csv",
+      "probe": { "type": "ods-dataset", "url": "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/ofgl-base-communes" }
+    },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://data.ofgl.fr/",
+    "attribution": "Observatoire des finances et de la gestion publique locales (OFGL)",
+    "tags": ["france", "communes", "siren", "ofgl", "opendata"]
+  },
+  {
+    "id": "fr-decp-marches",
+    "name": "DECP — marchés publics attribués (decp-2022-marches-valides)",
+    "description": "Données essentielles de la commande publique: les marchés attribués (~660k lignes), colonnes utiles seulement. URL générée par scripts/fetch_decp.py marches.",
+    "adapter": "http-artifact",
+    "url": "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/decp-2022-marches-valides/exports/csv?select=id%2Cobjet%2Ccodecpv%2Cprocedure%2Cnature%2Ctitulaire_id_1%2Ctitulaire_typeidentifiant_1%2Ctitulaire_id_2%2Ctitulaire_typeidentifiant_2%2Ctitulaire_id_3%2Ctitulaire_typeidentifiant_3%2Cacheteur_id%2Cmontant%2Cdatenotification%2Cdureemois&delimiter=%2C",
+    "options": {
+      "filename": "decp-marches.csv",
+      "probe": { "type": "ods-dataset", "url": "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/decp-2022-marches-valides" }
+    },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://data.economie.gouv.fr/",
+    "attribution": "Ministère de l'Économie et des Finances",
+    "tags": ["france", "commande-publique", "decp", "marches", "opendata"]
+  },
+  {
+    "id": "fr-decp-noms-titulaires",
+    "name": "DECP augmenté — dénominations SIRENE des titulaires",
+    "description": "SIRET → raison sociale, pour afficher un vrai nom d'entreprise au lieu d'un SIRET nu. URL générée par scripts/fetch_decp.py names.",
+    "adapter": "http-artifact",
+    "url": "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/decp_augmente/exports/csv?select=siretetablissement%2Cdenominationunitelegale%2Cdenominationsocialeetablissement&delimiter=%2C",
+    "options": {
+      "filename": "decp-names.csv",
+      "keep": 1,
+      "probe": { "type": "ods-dataset", "url": "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/decp_augmente" }
+    },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://data.economie.gouv.fr/",
+    "attribution": "Ministère de l'Économie et des Finances / SIRENE",
+    "tags": ["france", "commande-publique", "decp", "sirene", "opendata"]
+  },
+  {
+    "id": "fr-banatic-perimetre",
+    "name": "BANATIC — périmètre des EPCI à fiscalité propre",
+    "description": "Une ligne par (EPCI, commune membre). Le bulk ne couvre que les EPCI-FP: les syndicats (SIVU/SIVOM/SM) n'y sont pas.",
+    "adapter": "http-artifact",
+    "url": "https://www.data.gouv.fr/api/1/datasets/r/6e05c448-62cc-4470-aa0f-4f31adea0bc4",
+    "options": { "filename": "banatic-perimetre.csv", "probe": { "type": "http-head" } },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://www.banatic.interieur.gouv.fr/",
+    "attribution": "Ministère de l'Intérieur — BANATIC",
+    "tags": ["france", "epci", "intercommunalite", "banatic", "opendata"]
+  },
+  {
+    "id": "fr-municipales-2026-t1",
+    "name": "Municipales 2026 — résultats par commune (1er tour)",
+    "adapter": "http-artifact",
+    "url": "https://static.data.gouv.fr/resources/elections-municipales-2026-resultats-du-premier-tour/20260320-164339/municipales-2026-resultats-communes-2026-03-20.csv",
+    "options": { "filename": "muni2026-communes-t1.csv", "probe": { "type": "http-head" } },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://www.data.gouv.fr/",
+    "attribution": "Ministère de l'Intérieur",
+    "tags": ["france", "elections", "municipales", "opendata"]
+  },
+  {
+    "id": "fr-municipales-2026-t2",
+    "name": "Municipales 2026 — résultats par commune (2nd tour)",
+    "adapter": "http-artifact",
+    "url": "https://static.data.gouv.fr/resources/elections-municipales-2026-resultats-du-scond-tour/20260323-180124/municipales-2026-resultats-communes-2026-03-23-16h14.csv",
+    "options": { "filename": "muni2026-communes-t2.csv", "probe": { "type": "http-head" } },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://www.data.gouv.fr/",
+    "attribution": "Ministère de l'Intérieur",
+    "tags": ["france", "elections", "municipales", "opendata"]
+  },
+  {
+    "id": "fr-communes-centres",
+    "name": "geo.api.gouv.fr — centroïdes des communes (code + centre)",
+    "description": "lon/lat par commune, pour le rayon géographique du comparateur.",
+    "adapter": "http-artifact",
+    "url": "https://geo.api.gouv.fr/communes?fields=code,centre&format=json",
+    "options": { "filename": "communes-centres.json" },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://geo.api.gouv.fr/",
+    "attribution": "Etalab — API Géo",
+    "tags": ["france", "communes", "geo", "opendata"]
+  },
+  {
+    "id": "fr-hatvp-declarations",
+    "name": "HATVP — déclarations d'intérêts et de patrimoine (dump complet)",
+    "description": "XML ~84 Mo couvrant tous les élus/responsables publics. Partagé par fichedepute, fichesenat et fichedemaire.",
+    "adapter": "http-artifact",
+    "url": "https://www.hatvp.fr/livraison/merge/declarations.xml",
+    "options": { "filename": "declarations.xml", "probe": { "type": "http-head" }, "keep": 1 },
+    "refresh": "24h",
+    "license": "Licence Ouverte / Open Licence (Etalab)",
+    "homepage": "https://www.hatvp.fr/open-data/",
+    "attribution": "Haute Autorité pour la transparence de la vie publique",
+    "tags": ["france", "transparence", "hatvp", "declarations", "opendata"]
+  }
+]
