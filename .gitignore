@@ -5,3 +5,10 @@ pipeline/raw/
 *.log
 .DS_Store
 scripts/fonts/
+
+# Built data. Derived — every input is a versioned Sluice artifact and
+# `bash scripts/refresh-data.sh` regenerates the whole directory, so committing it
+# only added weight (a daily refresh would push hundreds of MB through git a year).
+# Production serves it from the host via the ./data bind mount in docker-compose.yml.
+data/*
+!data/.gitkeep
