@@ -197,7 +197,7 @@
         "type": "http-head"
       }
     },
-    "refresh": "24h",
+    "refresh": "never",
     "license": "Licence Ouverte / Open Licence (Etalab)",
     "homepage": "https://web.archive.org/",
     "attribution": "Ministère de l'Intérieur — RNE (via Internet Archive)",
@@ -344,7 +344,7 @@
         "type": "http-head"
       }
     },
-    "refresh": "24h",
+    "refresh": "never",
     "license": "Licence Ouverte / Open Licence (Etalab)",
     "homepage": "https://www.data.gouv.fr/",
     "attribution": "Ministère de l'Intérieur",
@@ -366,7 +366,7 @@
         "type": "http-head"
       }
     },
-    "refresh": "24h",
+    "refresh": "never",
     "license": "Licence Ouverte / Open Licence (Etalab)",
     "homepage": "https://www.data.gouv.fr/",
     "attribution": "Ministère de l'Intérieur",
